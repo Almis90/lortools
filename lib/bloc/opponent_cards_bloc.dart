@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lortools/models/lor_card.dart';
-import 'package:lortools/models/set.dart';
 // ignore: depend_on_referenced_packages
 import 'package:collection/collection.dart';
 
@@ -20,7 +19,9 @@ class OpponentCardsBloc extends Bloc<OpponentCardsEvent, OpponentCardsState> {
         if (existingCard == null) {
           cards.add(event.card);
         } else {
-          existingCard.increaseCount();
+          if (existingCard.count != 3) {
+            existingCard.increaseCount();
+          }
         }
         emit(OpponentCardsUpdated(cards));
       } else {

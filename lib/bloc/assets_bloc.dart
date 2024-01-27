@@ -14,9 +14,9 @@ class AssetsBloc extends Bloc<AssetsEvent, AssetsState> {
       : super(AssetsInitial()) {
     on<AssetsEvent>((event, emit) async {
       var hasFetchedSets = await setsRepository.fetchSets();
-      var hasFetched = await decksRepository.fetchDecks();
+      var hasFetchedDecks = await decksRepository.fetchDecks();
 
-      if (hasFetchedSets) {
+      if (hasFetchedSets && hasFetchedDecks) {
         emit(AssetsLoaded());
       }
     });

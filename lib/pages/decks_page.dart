@@ -10,7 +10,6 @@ import 'package:lortools/models/champion.dart';
 import 'package:lortools/models/deck.dart';
 import 'package:lortools/models/decks.dart';
 import 'package:lortools/models/lor_card.dart';
-import 'package:lortools/models/set.dart';
 import 'package:lortools/widgets/card_widget.dart';
 import 'package:lortools/widgets/deck_card_widget.dart';
 import 'package:multi_dropdown/multiselect_dropdown.dart';
@@ -27,8 +26,6 @@ class _DecksPageState extends State<DecksPage> {
   final MultiSelectController<String> _championsController =
       MultiSelectController<String>();
   final MultiSelectController<String> _regionsController =
-      MultiSelectController<String>();
-  final MultiSelectController<String> _cardsController =
       MultiSelectController<String>();
 
   @override
@@ -59,7 +56,7 @@ class _DecksPageState extends State<DecksPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildCards(),
-                  _buildOpponentCards(context),
+                  _buildOpponentCards(),
                   const Spacer(),
                   const Spacer(),
                 ],
@@ -84,22 +81,22 @@ class _DecksPageState extends State<DecksPage> {
     );
   }
 
-  Widget _buildDraggableCard(
-      BuildContext context, LorCard card, BoxConstraints constraints) {
+  Widget _buildDraggableCard(BuildContext context, LorCard card,
+      BoxConstraints constraints, bool showCount) {
     return Draggable<LorCard>(
       data: card,
       feedback: SizedBox(
         width: constraints.maxWidth,
         child: Opacity(
           opacity: 0.5,
-          child: CardWidget(lorCard: card),
+          child: CardWidget(lorCard: card, showCount: showCount),
         ),
       ),
-      child: CardWidget(lorCard: card),
+      child: CardWidget(lorCard: card, showCount: showCount),
     );
   }
 
-  Widget _buildOpponentCards(BuildContext context) {
+  Widget _buildOpponentCards() {
     return _buildCardLayout(
       'Opponent Cards',
       DragTarget<LorCard>(
@@ -116,7 +113,7 @@ class _DecksPageState extends State<DecksPage> {
                     return LayoutBuilder(
                       builder: (context, constraints) {
                         return _buildDraggableCard(
-                            context, state.cards[index], constraints);
+                            context, state.cards[index], constraints, true);
                       },
                     );
                   },
@@ -149,7 +146,7 @@ class _DecksPageState extends State<DecksPage> {
                     return LayoutBuilder(
                       builder: (context, constraints) {
                         return _buildDraggableCard(
-                            context, uniqueCards[index], constraints);
+                            context, uniqueCards[index], constraints, false);
                       },
                     );
                   },
