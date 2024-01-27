@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lortools/bloc/sets_bloc.dart';
 import 'package:lortools/helpers/card_helper.dart';
+import 'package:lortools/helpers/string_extensions.dart';
 import 'package:lortools/lor_deckcodes/deck_encoder.dart';
 import 'package:lortools/models/champion.dart';
 import 'package:lortools/models/deck.dart';
@@ -37,7 +38,9 @@ class DecksBloc extends Bloc<DecksEvent, DecksState> {
                   champions: deckStatsServer.assets?.champions
                       ?.map(_listStringToChampion)
                       .toList(),
-                  regions: deckStatsServer.assets?.regions,
+                  regions: deckStatsServer.assets?.champions
+                      ?.map(_listStringToRegions)
+                      .toList(),
                   cards: deckEncoder.getDeckFromCode(deckStats[0]).map((e) {
                     var cardInfo = setsBloc.allCards.firstWhereOrNull(
                         (element) => element.cardCode == e.cardCode);
@@ -79,9 +82,8 @@ class DecksBloc extends Bloc<DecksEvent, DecksState> {
       filteredDecks = regions.isEmpty
           ? allDecks
           : allDecks
-              .where((deck) =>
-                  deck.regions?.any((region) => regions.contains(region)) ??
-                  false)
+              .where((deck) => regions
+                  .every((region) => deck.regions?.contains(region) ?? false))
               .toList();
       filteredDecks = filteredDecks
           .where((deck) => champions.every((champion) =>
@@ -98,15 +100,16 @@ class DecksBloc extends Bloc<DecksEvent, DecksState> {
     on<DecksFilterByRegions>((event, emit) async {
       regions = event.regions ?? [];
 
-      filteredDecks = allDecks
-          .where((deck) =>
-              deck.regions?.any((region) => regions.contains(region)) ?? false)
-          .toList();
+      filteredDecks = regions.isEmpty
+          ? allDecks
+          : allDecks
+              .where((deck) => regions
+                  .every((region) => deck.regions?.contains(region) ?? false))
+              .toList();
       filteredDecks = filteredDecks
-          .where((deck) =>
-              deck.champions
-                  ?.any((champion) => champions.contains(champion.cardCode)) ??
-              false)
+          .where((deck) => champions.every((champion) =>
+              deck.champions?.any((card) => card.cardCode == champion) ??
+              false))
           .toList();
 
       emit(DecksLoaded(
@@ -122,5 +125,19 @@ class DecksBloc extends Bloc<DecksEvent, DecksState> {
       cardCode: championInfo[1],
       imageUrl: CardHelper.getImageUrlFromCode(championInfo[1]),
     );
+  }
+
+  String _listStringToRegions(List<String> championInfo) {
+    var region = championInfo[2];
+
+    if (region == "bandlecity") {
+      return "Bandle City";
+    } else if (region == "piltoverzaun") {
+      return "Piltover & Zaun";
+    } else if (region == "shadowisles") {
+      return "Shadow Isles";
+    } else {
+      return region.toTitleCase();
+    }
   }
 }
