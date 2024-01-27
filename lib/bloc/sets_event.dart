@@ -11,3 +11,9 @@ class CardsFilter extends SetsEvent {
 
   CardsFilter(this.champions, this.regions);
 }
+
+class FilterCardsByName extends SetsEvent {
+  final String name;
+
+  FilterCardsByName(this.name);
+}

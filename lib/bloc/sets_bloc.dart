@@ -8,13 +8,15 @@ part 'sets_state.dart';
 
 class SetsBloc extends Bloc<SetsEvent, SetsState> {
   final SetsRepository setsRepository;
-  List<LorCard> cards = [];
+  List<LorCard> allCards = [];
   List<LorCard> filteredCards = [];
+  String name = '';
+  List<String> regions = [];
 
   SetsBloc(this.setsRepository) : super(SetsInitial()) {
     on<LoadAllCardsFromAllSets>((event, emit) async {
       var setCards = await setsRepository.getAllCardsFromAllSet();
-      cards = filteredCards = setCards
+      allCards = filteredCards = setCards
           .map(
             (e) => LorCard(
               cardCode: e.cardCode ?? '',
@@ -28,17 +30,38 @@ class SetsBloc extends Bloc<SetsEvent, SetsState> {
           )
           .toList();
 
-      emit(CardsLoaded(filteredCards: filteredCards, allCards: cards));
+      emit(CardsLoaded(filteredCards: filteredCards, allCards: allCards));
     });
     on<CardsFilter>((event, emit) async {
-      filteredCards = event.regions?.isEmpty ?? true
-          ? cards
-          : cards
-              .where((e) => e.regions
-                  .any((element) => event.regions?.contains(element) ?? true))
-              .toList();
+      regions = event.regions ?? [];
 
-      emit(CardsLoaded(filteredCards: filteredCards, allCards: cards));
+      filteredCards = filterCardsByName(allCards, name);
+      filteredCards = filterCardsByRegion(filteredCards, regions);
+
+      emit(CardsLoaded(filteredCards: filteredCards, allCards: allCards));
     });
+    on<FilterCardsByName>((event, emit) {
+      name = event.name;
+
+      filteredCards = filterCardsByName(allCards, name);
+      filteredCards = filterCardsByRegion(filteredCards, regions);
+
+      emit(CardsLoaded(filteredCards: filteredCards, allCards: allCards));
+    });
+  }
+
+  List<LorCard> filterCardsByName(List<LorCard> cards, String name) {
+    return cards
+        .where((element) =>
+            element.name.toLowerCase().contains(name.toLowerCase()))
+        .toList();
+  }
+
+  List<LorCard> filterCardsByRegion(List<LorCard> cards, List<String> regions) {
+    return regions.isEmpty
+        ? cards
+        : cards
+            .where((e) => e.regions.any((element) => regions.contains(element)))
+            .toList();
   }
 }

@@ -4,9 +4,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lortools/bloc/decks_bloc.dart';
 import 'package:lortools/bloc/opponent_cards_bloc.dart';
 import 'package:lortools/bloc/predicted_cards_bloc.dart';
+import 'package:lortools/bloc/search_cards_bloc.dart';
 import 'package:lortools/bloc/sets_bloc.dart';
 import 'package:lortools/helpers/card_helper.dart';
-import 'package:lortools/helpers/string_extensions.dart';
 import 'package:lortools/models/champion.dart';
 import 'package:lortools/models/deck.dart';
 import 'package:lortools/models/decks.dart';
@@ -28,11 +28,21 @@ class _DecksPageState extends State<DecksPage> {
       MultiSelectController<String>();
   final MultiSelectController<String> _regionsController =
       MultiSelectController<String>();
+  final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
 
   @override
   void initState() {
     super.initState();
     initializeDecks();
+
+    _searchFocusNode.addListener(() {
+      if (!_searchFocusNode.hasFocus) {
+        context
+            .read<SearchCardsBloc>()
+            .add(SearchCardsToggle(_searchController.text));
+      }
+    });
   }
 
   void initializeDecks() {
@@ -75,6 +85,74 @@ class _DecksPageState extends State<DecksPage> {
         child: Column(
           children: [
             _cardsTitle(title),
+            Expanded(child: content),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCardLayoutWithSearch(
+      String title, Widget content, List<LorCard> cards) {
+    return Expanded(
+      child: Card(
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                BlocBuilder<SearchCardsBloc, SearchCardsState>(
+                  builder: (context, state) {
+                    if (state is SearchCardsInitial) {
+                      return _cardsTitle(title);
+                    } else {
+                      return Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(0, 0, 0, 4),
+                          child: TextField(
+                            controller: _searchController,
+                            focusNode: _searchFocusNode,
+                            onChanged: (value) {
+                              context
+                                  .read<SetsBloc>()
+                                  .add(FilterCardsByName(value));
+                            },
+                            decoration: const InputDecoration(
+                              labelText: 'Search',
+                              border: OutlineInputBorder(),
+                              prefixIcon: Icon(Icons.search),
+                            ),
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                ),
+                BlocBuilder<SearchCardsBloc, SearchCardsState>(
+                  builder: (context, state) {
+                    if (state is SearchCardsInitial) {
+                      return GestureDetector(
+                        child: const Icon(Icons.search),
+                        onTap: () {
+                          context
+                              .read<SearchCardsBloc>()
+                              .add(SearchCardsToggle(_searchController.text));
+                        },
+                      );
+                    } else {
+                      return GestureDetector(
+                        child: const Icon(Icons.close_sharp),
+                        onTap: () {
+                          context
+                              .read<SearchCardsBloc>()
+                              .add(SearchCardsToggle(_searchController.text));
+                        },
+                      );
+                    }
+                  },
+                ),
+              ],
+            ),
             Expanded(child: content),
           ],
         ),
@@ -134,35 +212,37 @@ class _DecksPageState extends State<DecksPage> {
   }
 
   Widget _buildCards() {
-    return _buildCardLayout(
-      'Cards',
-      DragTarget<LorCard>(
-        onAccept: (data) {
-          context.read<OpponentCardsBloc>().add(OpponentCardsRemove(data));
-        },
-        builder: (context, candidateData, rejectedData) {
-          return BlocBuilder<SetsBloc, SetsState>(
-            builder: (context, state) {
-              if (state is CardsLoaded) {
-                var uniqueCards = _getUniqueSortedCards(state.filteredCards);
-                return ListView.builder(
-                  itemCount: uniqueCards.length,
-                  itemBuilder: (context, index) {
-                    return LayoutBuilder(
-                      builder: (context, constraints) {
-                        return _buildDraggableCard(
-                            context, uniqueCards[index], constraints, false);
-                      },
-                    );
-                  },
-                );
-              } else {
-                return Container();
-              }
-            },
-          );
-        },
-      ),
+    return BlocBuilder<SetsBloc, SetsState>(
+      builder: (context, state) {
+        if (state is CardsLoaded) {
+          return _buildCardLayoutWithSearch(
+              'Cards',
+              DragTarget<LorCard>(
+                onAccept: (data) {
+                  context
+                      .read<OpponentCardsBloc>()
+                      .add(OpponentCardsRemove(data));
+                },
+                builder: (context, candidateData, rejectedData) {
+                  var uniqueCards = _getUniqueSortedCards(state.filteredCards);
+                  return ListView.builder(
+                    itemCount: uniqueCards.length,
+                    itemBuilder: (context, index) {
+                      return LayoutBuilder(
+                        builder: (context, constraints) {
+                          return _buildDraggableCard(
+                              context, uniqueCards[index], constraints, false);
+                        },
+                      );
+                    },
+                  );
+                },
+              ),
+              state.allCards);
+        } else {
+          return Container();
+        }
+      },
     );
   }
 
