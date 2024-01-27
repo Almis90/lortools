@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lortools/bloc/decks_bloc.dart';
 import 'package:lortools/bloc/opponent_cards_bloc.dart';
+import 'package:lortools/bloc/predicted_cards_bloc.dart';
 import 'package:lortools/bloc/sets_bloc.dart';
 import 'package:lortools/helpers/card_helper.dart';
 import 'package:lortools/helpers/string_extensions.dart';
@@ -57,7 +58,7 @@ class _DecksPageState extends State<DecksPage> {
                 children: [
                   _buildCards(),
                   _buildOpponentCards(),
-                  const Spacer(),
+                  _buildPredictedCards(),
                   const Spacer(),
                 ],
               ),
@@ -101,7 +102,11 @@ class _DecksPageState extends State<DecksPage> {
       'Opponent Cards',
       DragTarget<LorCard>(
         onAccept: (data) {
-          context.read<OpponentCardsBloc>().add(OpponentCardsAdd(data));
+          var opponentCardsBloc = context.read<OpponentCardsBloc>();
+          opponentCardsBloc.add(OpponentCardsAdd(data));
+          // context
+          //     .read<PredictedCardsBloc>()
+          //     .add(PredictedCardsUpdate(opponentCardsBloc.cards));
         },
         builder: (context, candidateData, rejectedData) {
           return BlocBuilder<OpponentCardsBloc, OpponentCardsState>(
@@ -139,7 +144,7 @@ class _DecksPageState extends State<DecksPage> {
           return BlocBuilder<SetsBloc, SetsState>(
             builder: (context, state) {
               if (state is CardsLoaded) {
-                var uniqueCards = _getUniqueSortedCards(state.cards);
+                var uniqueCards = _getUniqueSortedCards(state.filteredCards);
                 return ListView.builder(
                   itemCount: uniqueCards.length,
                   itemBuilder: (context, index) {
@@ -156,6 +161,31 @@ class _DecksPageState extends State<DecksPage> {
               }
             },
           );
+        },
+      ),
+    );
+  }
+
+  Widget _buildPredictedCards() {
+    return _buildCardLayout(
+      'Predicted Cards',
+      BlocBuilder<PredictedCardsBloc, PredictedCardsState>(
+        builder: (context, state) {
+          if (state is PredictedCardsUpdated) {
+            return ListView.builder(
+              itemCount: state.cards.length,
+              itemBuilder: (context, index) {
+                return LayoutBuilder(
+                  builder: (context, constraints) {
+                    return CardWidget(
+                        lorCard: state.cards[index], showCount: true);
+                  },
+                );
+              },
+            );
+          } else {
+            return Container();
+          }
         },
       ),
     );
@@ -191,10 +221,10 @@ class _DecksPageState extends State<DecksPage> {
   }
 
   Widget _buildChampionDropdown() {
-    return BlocBuilder<DecksBloc, DecksState>(
+    return BlocBuilder<SetsBloc, SetsState>(
       builder: (context, state) {
-        if (state is DecksLoaded) {
-          var champions = _getChampions(state);
+        if (state is CardsLoaded) {
+          var champions = _getChampions(state.allCards);
           var dropdownItems =
               champions?.map(_championToValueItem).toList() ?? [];
 
@@ -218,10 +248,10 @@ class _DecksPageState extends State<DecksPage> {
   }
 
   Widget _buildRegionDropdown() {
-    return BlocBuilder<DecksBloc, DecksState>(
+    return BlocBuilder<SetsBloc, SetsState>(
       builder: (context, state) {
-        if (state is DecksLoaded) {
-          var regions = _getRegions(state);
+        if (state is CardsLoaded) {
+          var regions = _getRegions(state.allCards);
           var dropdownItems = regions?.map(_regionToValueItem).toList() ?? [];
 
           return MultiSelectDropDown<String>(
@@ -276,32 +306,26 @@ class _DecksPageState extends State<DecksPage> {
     );
   }
 
-  List<Champion>? _getChampions(DecksLoaded state) {
-    if (state.decks.stats?.seven?.europe == null) {
-      return null;
-    }
+  List<Champion>? _getChampions(List<LorCard> cards) {
+    var regions = _regionsController.selectedOptions.map((e) => e.value ?? '');
 
-    return state.decks.stats!.seven!.europe!
-        .expand<Champion>((deckStat) =>
-            deckStat.assets?.champions?.map((championData) => Champion(
-                title: championData[0],
-                imageUrl: CardHelper.getImageUrlFromCode(championData[1]))) ??
-            const Iterable.empty())
-        .toSet()
+    return cards
+        .where((card) =>
+            card.rarity == 'Champion' &&
+            (regions.isEmpty ||
+                regions.any((region) => card.regions.contains(region))))
+        .map((e) => Champion(
+            name: e.name,
+            cardCode: e.cardCode,
+            imageUrl: CardHelper.getImageUrlFromCode(e.cardCode)))
         .toList()
-      ..sort((a, b) => a.title.compareTo(b.title));
+      ..sort((a, b) => a.name.compareTo(b.name));
   }
 
-  List<String>? _getRegions(DecksLoaded state) {
-    if (state.decks.stats?.seven?.europe == null) {
-      return null;
-    }
-
-    return state.decks.stats!.seven!.europe!
-        .expand<String>((deckStat) =>
-            deckStat.assets?.champions
-                ?.map((champion) => champion[2].toTitleCase()) ??
-            const Iterable.empty())
+  List<String>? _getRegions(List<LorCard> cards) {
+    return cards
+        .where((card) => card.rarity == 'Champion')
+        .expand((e) => e.regions)
         .toSet()
         .toList()
       ..sort();
@@ -312,12 +336,17 @@ class _DecksPageState extends State<DecksPage> {
 
     context.read<DecksBloc>().add(DecksFilter(selectedTitles,
         _regionsController.selectedOptions.map(_valueItemToString).toList()));
+    context.read<SetsBloc>().add(CardsFilter(selectedTitles,
+        _regionsController.selectedOptions.map(_valueItemToString).toList()));
   }
 
   void _onRegionOptionSelected(List<ValueItem<String>> selectedOptions) {
     var selectedTitles = selectedOptions.map(_valueItemToString).toList();
 
     context.read<DecksBloc>().add(DecksFilter(
+        _championsController.selectedOptions.map(_valueItemToString).toList(),
+        selectedTitles));
+    context.read<SetsBloc>().add(CardsFilter(
         _championsController.selectedOptions.map(_valueItemToString).toList(),
         selectedTitles));
   }
@@ -327,7 +356,7 @@ class _DecksPageState extends State<DecksPage> {
   }
 
   ValueItem<String> _championToValueItem(Champion champion) {
-    return ValueItem(label: champion.title, value: champion.title);
+    return ValueItem(label: champion.name, value: champion.cardCode);
   }
 
   ValueItem<String> _regionToValueItem(String region) {
@@ -336,7 +365,8 @@ class _DecksPageState extends State<DecksPage> {
 
   Champion _listStringToChampion(List<String> championInfo) {
     return Champion(
-      title: championInfo[0],
+      name: championInfo[0],
+      cardCode: championInfo[1],
       imageUrl: CardHelper.getImageUrlFromCode(championInfo[1]),
     );
   }

@@ -36,11 +36,16 @@ class DecksBloc extends Bloc<DecksEvent, DecksState> {
           return true;
         });
         decks.stats?.seven?.europe?.removeWhere((element) {
-          if (event.regions?.every((x) =>
-                  element.assets?.champions
-                      ?.map((e) => e[2])
-                      .contains(x.toLowerCase()) ??
-                  false) ??
+          if (event.regions?.every((x) {
+                var region = x.toLowerCase();
+                if (region == "bandle city") {
+                  region = "bundlecity";
+                }
+                return element.assets?.champions
+                        ?.map((e) => e[2])
+                        .contains(region) ??
+                    false;
+              }) ??
               false) {
             return false;
           }

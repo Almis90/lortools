@@ -8,11 +8,11 @@ part 'opponent_cards_event.dart';
 part 'opponent_cards_state.dart';
 
 class OpponentCardsBloc extends Bloc<OpponentCardsEvent, OpponentCardsState> {
+  List<LorCard> cards = [];
+
   OpponentCardsBloc() : super(OpponentCardsInitial()) {
     on<OpponentCardsAdd>((event, emit) {
-      if (state is OpponentCardsUpdated) {
-        var cards = (state as OpponentCardsUpdated).cards;
-
+      if (cards.isNotEmpty) {
         var existingCard = cards.firstWhereOrNull(
             (element) => element.cardCode == event.card.cardCode);
 
@@ -23,10 +23,10 @@ class OpponentCardsBloc extends Bloc<OpponentCardsEvent, OpponentCardsState> {
             existingCard.increaseCount();
           }
         }
-        emit(OpponentCardsUpdated(cards));
       } else {
-        emit(OpponentCardsUpdated([event.card]));
+        cards.add(event.card);
       }
+      emit(OpponentCardsUpdated([event.card]));
     });
     on<OpponentCardsRemove>((event, emit) {
       if (state is OpponentCardsUpdated) {

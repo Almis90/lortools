@@ -1,20 +1,18 @@
 class Champion {
-  final String title;
+  final String name;
+  final String cardCode;
   final String imageUrl;
 
   Champion({
-    required this.title,
+    required this.name,
+    required this.cardCode,
     required this.imageUrl,
   });
 
   @override
   bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is Champion &&
-          runtimeType == other.runtimeType &&
-          title == other.title &&
-          imageUrl == other.imageUrl;
+      identical(this, other) || other is Champion && cardCode == other.cardCode;
 
   @override
-  int get hashCode => title.hashCode ^ imageUrl.hashCode;
+  int get hashCode => name.hashCode ^ imageUrl.hashCode;
 }

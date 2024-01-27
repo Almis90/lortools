@@ -4,6 +4,7 @@ import 'package:lortools/auto_router.dart';
 import 'package:lortools/bloc/assets_bloc.dart';
 import 'package:lortools/bloc/decks_bloc.dart';
 import 'package:lortools/bloc/opponent_cards_bloc.dart';
+import 'package:lortools/bloc/predicted_cards_bloc.dart';
 import 'package:lortools/bloc/sets_bloc.dart';
 import 'package:lortools/repositories/decks_repository.dart';
 import 'package:lortools/repositories/sets_repository.dart';
@@ -48,6 +49,9 @@ class MyApp extends StatelessWidget {
           ),
           BlocProvider<OpponentCardsBloc>(
             create: (context) => OpponentCardsBloc(),
+          ),
+          BlocProvider<PredictedCardsBloc>(
+            create: (context) => PredictedCardsBloc(),
           ),
         ],
         child: MaterialApp.router(
