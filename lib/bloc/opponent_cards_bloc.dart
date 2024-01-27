@@ -26,7 +26,7 @@ class OpponentCardsBloc extends Bloc<OpponentCardsEvent, OpponentCardsState> {
       } else {
         cards.add(event.card);
       }
-      emit(OpponentCardsUpdated([event.card]));
+      emit(OpponentCardsUpdated(cards));
     });
     on<OpponentCardsRemove>((event, emit) {
       if (state is OpponentCardsUpdated) {

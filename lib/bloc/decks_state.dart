@@ -6,8 +6,11 @@ sealed class DecksState {}
 final class DecksInitial extends DecksState {}
 
 final class DecksLoaded extends DecksState {
-  final Decks decks;
-  final Decks filteredDecks;
+  final List<Deck> allDecks;
+  final List<Deck> filteredDecks;
 
-  DecksLoaded(this.decks, this.filteredDecks);
+  DecksLoaded({
+    required this.allDecks,
+    required this.filteredDecks,
+  });
 }

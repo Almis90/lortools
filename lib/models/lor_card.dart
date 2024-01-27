@@ -21,4 +21,13 @@ class LorCard {
   void increaseCount() {
     count++;
   }
+
+  static LorCard unknown = LorCard(
+      cardCode: 'cardCode',
+      collectible: false,
+      name: 'Unknown',
+      deckSet: 'Unknown',
+      cost: -1,
+      regions: [],
+      rarity: 'Unknown');
 }

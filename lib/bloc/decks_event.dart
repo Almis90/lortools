@@ -5,9 +5,14 @@ sealed class DecksEvent {}
 
 class DecksLoad extends DecksEvent {}
 
-class DecksFilter extends DecksEvent {
+class DecksFilterByChampions extends DecksEvent {
   final List<String>? champions;
+
+  DecksFilterByChampions(this.champions);
+}
+
+class DecksFilterByRegions extends DecksEvent {
   final List<String>? regions;
 
-  DecksFilter(this.champions, this.regions);
+  DecksFilterByRegions(this.regions);
 }

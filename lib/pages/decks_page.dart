@@ -9,7 +9,6 @@ import 'package:lortools/bloc/sets_bloc.dart';
 import 'package:lortools/helpers/card_helper.dart';
 import 'package:lortools/models/champion.dart';
 import 'package:lortools/models/deck.dart';
-import 'package:lortools/models/decks.dart';
 import 'package:lortools/models/lor_card.dart';
 import 'package:lortools/widgets/card_widget.dart';
 import 'package:lortools/widgets/deck_card_widget.dart';
@@ -182,6 +181,14 @@ class _DecksPageState extends State<DecksPage> {
         onAccept: (data) {
           var opponentCardsBloc = context.read<OpponentCardsBloc>();
           opponentCardsBloc.add(OpponentCardsAdd(data));
+
+          if (data.rarity == 'Champion' &&
+              !_championsController.selectedOptions
+                  .any((x) => x.value == data.cardCode)) {
+            _championsController.addSelectedOption(_championsController.options
+                .firstWhere((element) => element.value == data.cardCode));
+          }
+
           // context
           //     .read<PredictedCardsBloc>()
           //     .add(PredictedCardsUpdate(opponentCardsBloc.cards));
@@ -369,9 +376,7 @@ class _DecksPageState extends State<DecksPage> {
   }
 
   ListView _buildDecksLoaded(DecksLoaded state) {
-    var decks =
-        state.filteredDecks.stats?.seven?.europe?.map(_deckStateServerToDeck) ??
-            [];
+    var decks = state.filteredDecks;
 
     return ListView(
         scrollDirection: Axis.horizontal,
@@ -414,8 +419,7 @@ class _DecksPageState extends State<DecksPage> {
   void _onChampionOptionSelected(List<ValueItem<String>> selectedOptions) {
     var selectedTitles = selectedOptions.map(_valueItemToString).toList();
 
-    context.read<DecksBloc>().add(DecksFilter(selectedTitles,
-        _regionsController.selectedOptions.map(_valueItemToString).toList()));
+    context.read<DecksBloc>().add(DecksFilterByChampions(selectedTitles));
     context.read<SetsBloc>().add(CardsFilter(selectedTitles,
         _regionsController.selectedOptions.map(_valueItemToString).toList()));
   }
@@ -423,9 +427,7 @@ class _DecksPageState extends State<DecksPage> {
   void _onRegionOptionSelected(List<ValueItem<String>> selectedOptions) {
     var selectedTitles = selectedOptions.map(_valueItemToString).toList();
 
-    context.read<DecksBloc>().add(DecksFilter(
-        _championsController.selectedOptions.map(_valueItemToString).toList(),
-        selectedTitles));
+    context.read<DecksBloc>().add(DecksFilterByRegions(selectedTitles));
     context.read<SetsBloc>().add(CardsFilter(
         _championsController.selectedOptions.map(_valueItemToString).toList(),
         selectedTitles));
@@ -441,24 +443,5 @@ class _DecksPageState extends State<DecksPage> {
 
   ValueItem<String> _regionToValueItem(String region) {
     return ValueItem(label: region, value: region);
-  }
-
-  Champion _listStringToChampion(List<String> championInfo) {
-    return Champion(
-      name: championInfo[0],
-      cardCode: championInfo[1],
-      imageUrl: CardHelper.getImageUrlFromCode(championInfo[1]),
-    );
-  }
-
-  Deck _deckStateServerToDeck(DeckStatsServer deckStatsServer) {
-    return Deck(
-        winrate: deckStatsServer.winrate ?? 0,
-        playrate: deckStatsServer.playrate ?? 0,
-        totalMatches: deckStatsServer.totalMatches ?? 0,
-        champions: deckStatsServer.assets?.champions
-                ?.map(_listStringToChampion)
-                .toList() ??
-            []);
   }
 }
