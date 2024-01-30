@@ -21,7 +21,7 @@ class IconText extends StatelessWidget {
           placeholder: (context, url) => const CircularProgressIndicator(),
           errorWidget: (context, url, error) => const Icon(Icons.error),
         ),
-        const SizedBox(width: 8), // Space between icon and text
+        const SizedBox(width: 8),
         Text(text),
       ],
     );

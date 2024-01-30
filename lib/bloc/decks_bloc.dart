@@ -18,6 +18,7 @@ class DecksBloc extends Bloc<DecksEvent, DecksState> {
   final DeckEncoder deckEncoder = DeckEncoder();
   List<Deck> allDecks = [];
   List<Deck> filteredDecks = [];
+  List<Deck> predictedDecks = [];
   List<String> champions = [];
   List<String> regions = [];
 
@@ -36,28 +37,33 @@ class DecksBloc extends Bloc<DecksEvent, DecksState> {
               var deckStats = deckInfo.split(',');
               return Deck(
                   champions: deckStatsServer.assets?.champions
-                      ?.map(_listStringToChampion)
-                      .toList(),
+                          ?.map(_listStringToChampion)
+                          .toList() ??
+                      [],
                   regions: deckStatsServer.assets?.champions
-                      ?.map(_listStringToRegions)
-                      .toList(),
-                  cards: deckEncoder.getDeckFromCode(deckStats[0]).map((e) {
-                    var cardInfo = setsBloc.allCards.firstWhereOrNull(
-                        (element) => element.cardCode == e.cardCode);
+                          ?.map(_listStringToRegions)
+                          .toList() ??
+                      [],
+                  cards: deckEncoder.getDeckFromCode(deckStats[0]).map(
+                    (e) {
+                      var cardInfo = setsBloc.allCards.firstWhereOrNull(
+                          (element) => element.cardCode == e.cardCode);
 
-                    if (cardInfo == null) {
-                      return LorCard.unknown;
-                    }
-                    return LorCard(
-                      cardCode: e.cardCode,
-                      collectible: cardInfo.collectible,
-                      name: cardInfo.name,
-                      deckSet: cardInfo.deckSet,
-                      cost: cardInfo.cost,
-                      regions: cardInfo.regions,
-                      rarity: cardInfo.rarity,
-                    );
-                  }).toList(),
+                      if (cardInfo == null) {
+                        return LorCard.unknown;
+                      }
+                      return LorCard(
+                        cardCode: e.cardCode,
+                        collectible: cardInfo.collectible,
+                        name: cardInfo.name,
+                        deckSet: cardInfo.deckSet,
+                        cost: cardInfo.cost,
+                        regions: cardInfo.regions,
+                        rarity: cardInfo.rarity,
+                        count: e.count,
+                      );
+                    },
+                  ).toList(),
                   winrate: double.parse(deckStats[2]),
                   playrate: double.parse(deckStats[3]),
                   totalMatches: int.parse(deckStats[1]),
@@ -69,6 +75,11 @@ class DecksBloc extends Bloc<DecksEvent, DecksState> {
         allDecks.add(deck);
       });
       filteredDecks = allDecks.toList();
+      filteredDecks.sort(
+        (a, b) {
+          return b.winrate.compareTo(a.winrate);
+        },
+      );
 
       emit(DecksLoaded(
         allDecks: allDecks,
@@ -82,13 +93,12 @@ class DecksBloc extends Bloc<DecksEvent, DecksState> {
       filteredDecks = regions.isEmpty
           ? allDecks
           : allDecks
-              .where((deck) => regions
-                  .every((region) => deck.regions?.contains(region) ?? false))
+              .where((deck) =>
+                  regions.every((region) => deck.regions.contains(region)))
               .toList();
       filteredDecks = filteredDecks
           .where((deck) => champions.every((champion) =>
-              deck.champions?.any((card) => card.cardCode == champion) ??
-              false))
+              deck.champions.any((card) => card.cardCode == champion)))
           .toList();
 
       emit(DecksLoaded(
@@ -103,19 +113,23 @@ class DecksBloc extends Bloc<DecksEvent, DecksState> {
       filteredDecks = regions.isEmpty
           ? allDecks
           : allDecks
-              .where((deck) => regions
-                  .every((region) => deck.regions?.contains(region) ?? false))
+              .where((deck) =>
+                  regions.every((region) => deck.regions.contains(region)))
               .toList();
       filteredDecks = filteredDecks
           .where((deck) => champions.every((champion) =>
-              deck.champions?.any((card) => card.cardCode == champion) ??
-              false))
+              deck.champions.any((card) => card.cardCode == champion)))
           .toList();
 
       emit(DecksLoaded(
         allDecks: allDecks,
         filteredDecks: filteredDecks,
       ));
+    });
+
+    on<DecksPredicted>((event, emit) async {
+      predictedDecks = event.decks;
+      emit(DecksLoaded(allDecks: allDecks, filteredDecks: event.decks));
     });
   }
 

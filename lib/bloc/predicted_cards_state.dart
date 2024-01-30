@@ -6,7 +6,7 @@ sealed class PredictedCardsState {}
 final class PredictedCardsInitial extends PredictedCardsState {}
 
 final class PredictedCardsUpdated extends PredictedCardsState {
-  final List<LorCard> cards;
+  final List<PredictLorCard> cards;
 
   PredictedCardsUpdated(this.cards);
 }

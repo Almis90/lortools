@@ -35,6 +35,9 @@ class SetsRepository {
         cards.addAll(jsonData.map<SetCard>((jsonItem) {
           return SetCard.fromJson(jsonItem as Map<String, dynamic>);
         }));
+      } else {
+        await _fetchAndCacheSet(prefs, _setVersions[i]);
+        i--;
       }
     }
 

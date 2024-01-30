@@ -53,7 +53,9 @@ class MyApp extends StatelessWidget {
             create: (context) => OpponentCardsBloc(),
           ),
           BlocProvider<PredictedCardsBloc>(
-            create: (context) => PredictedCardsBloc(),
+            create: (context) => PredictedCardsBloc(
+              BlocProvider.of<DecksBloc>(context),
+            ),
           ),
           BlocProvider<SearchCardsBloc>(
             create: (context) => SearchCardsBloc(),

@@ -10,6 +10,7 @@ import 'package:lortools/helpers/card_helper.dart';
 import 'package:lortools/models/champion.dart';
 import 'package:lortools/models/deck.dart';
 import 'package:lortools/models/lor_card.dart';
+import 'package:lortools/widgets/card_prediction_widget.dart';
 import 'package:lortools/widgets/card_widget.dart';
 import 'package:lortools/widgets/deck_card_widget.dart';
 import 'package:multi_dropdown/multiselect_dropdown.dart';
@@ -45,7 +46,6 @@ class _DecksPageState extends State<DecksPage> {
   }
 
   void initializeDecks() {
-    context.read<DecksBloc>().add(DecksLoad());
     context.read<SetsBloc>().add(LoadAllCardsFromAllSets());
   }
 
@@ -189,9 +189,8 @@ class _DecksPageState extends State<DecksPage> {
                 .firstWhere((element) => element.value == data.cardCode));
           }
 
-          // context
-          //     .read<PredictedCardsBloc>()
-          //     .add(PredictedCardsUpdate(opponentCardsBloc.cards));
+          context.read<PredictedCardsBloc>().add(PredictedCardsUpdate(
+              opponentCardsBloc.cards.toList()..add(data)));
         },
         builder: (context, candidateData, rejectedData) {
           return BlocBuilder<OpponentCardsBloc, OpponentCardsState>(
@@ -222,6 +221,11 @@ class _DecksPageState extends State<DecksPage> {
     return BlocBuilder<SetsBloc, SetsState>(
       builder: (context, state) {
         if (state is CardsLoaded) {
+          var decksBloc = context.read<DecksBloc>();
+          if (decksBloc.state is DecksInitial) {
+            decksBloc.add(DecksLoad());
+          }
+
           return _buildCardLayoutWithSearch(
               'Cards',
               DragTarget<LorCard>(
@@ -264,8 +268,7 @@ class _DecksPageState extends State<DecksPage> {
               itemBuilder: (context, index) {
                 return LayoutBuilder(
                   builder: (context, constraints) {
-                    return CardWidget(
-                        lorCard: state.cards[index], showCount: true);
+                    return CardPredictionWidget(lorCard: state.cards[index]);
                   },
                 );
               },

@@ -8,3 +8,9 @@ class PredictedCardsUpdate extends PredictedCardsEvent {
 
   PredictedCardsUpdate(this.cards);
 }
+
+class PredictedCardsLoad extends PredictedCardsEvent {
+  final List<LorCard> cards;
+
+  PredictedCardsLoad(this.cards);
+}

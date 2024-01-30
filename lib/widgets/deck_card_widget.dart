@@ -1,5 +1,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lortools/bloc/decks_bloc.dart';
+import 'package:lortools/bloc/predicted_cards_bloc.dart';
 import 'package:lortools/models/deck.dart';
 
 class DeckCardWidget extends StatelessWidget {
@@ -25,7 +29,13 @@ class DeckCardWidget extends StatelessWidget {
           ),
         ),
       ),
-      onTap: () {},
+      onTap: () async {
+        context.read<DecksBloc>().add(DecksPredicted([deck]));
+        context.read<PredictedCardsBloc>().add(PredictedCardsLoad(deck.cards));
+      },
+      onLongPress: () async {
+        await Clipboard.setData(ClipboardData(text: deck.deckCode));
+      },
     );
   }
 
@@ -56,7 +66,7 @@ class DeckCardWidget extends StatelessWidget {
   }
 
   Widget _buildContent(BuildContext context) {
-    if (deck.champions?.isEmpty ?? true) {
+    if (deck.champions.isEmpty) {
       return Container();
     }
 
@@ -65,7 +75,7 @@ class DeckCardWidget extends StatelessWidget {
         return Center(
           child: Wrap(
             alignment: WrapAlignment.center,
-            children: deck.champions!
+            children: deck.champions
                 .map((champion) => _buildImage(champion.imageUrl, constraints))
                 .toList(),
           ),

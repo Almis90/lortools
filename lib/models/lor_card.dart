@@ -16,6 +16,7 @@ class LorCard {
     required this.cost,
     required this.regions,
     required this.rarity,
+    this.count = 0,
   });
 
   void increaseCount() {
@@ -30,4 +31,14 @@ class LorCard {
       cost: -1,
       regions: [],
       rarity: 'Unknown');
+}
+
+class PredictLorCard {
+  final LorCard card;
+  final List<double> percentages;
+
+  PredictLorCard({
+    required this.card,
+    required this.percentages,
+  });
 }

@@ -16,3 +16,9 @@ class DecksFilterByRegions extends DecksEvent {
 
   DecksFilterByRegions(this.regions);
 }
+
+class DecksPredicted extends DecksEvent {
+  final List<Deck> decks;
+
+  DecksPredicted(this.decks);
+}
