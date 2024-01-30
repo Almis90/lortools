@@ -10,6 +10,9 @@ part 'predicted_cards_state.dart';
 class PredictedCardsBloc
     extends Bloc<PredictedCardsEvent, PredictedCardsState> {
   PredictedCardsBloc(DecksBloc decksBloc) : super(PredictedCardsInitial()) {
+    on<PredictedCardsClear>((event, emit) {
+      emit(PredictedCardsUpdated(const []));
+    });
     on<PredictedCardsUpdate>((event, emit) {
       var decks = decksBloc.filteredDecks;
       var cards = event.cards;

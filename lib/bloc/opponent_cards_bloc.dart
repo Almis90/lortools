@@ -11,6 +11,9 @@ class OpponentCardsBloc extends Bloc<OpponentCardsEvent, OpponentCardsState> {
   List<LorCard> cards = [];
 
   OpponentCardsBloc() : super(OpponentCardsInitial()) {
+    on<OpponentCardsClear>((event, emit) {
+      emit(OpponentCardsUpdated(const []));
+    });
     on<OpponentCardsAdd>((event, emit) {
       if (cards.isNotEmpty) {
         var existingCard = cards.firstWhereOrNull(

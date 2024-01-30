@@ -54,6 +54,20 @@ class _DecksPageState extends State<DecksPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Decks'),
+        actions: [
+          GestureDetector(
+            child: const Icon(Icons.restart_alt),
+            onTap: () {
+              context.read<SetsBloc>().add(LoadAllCardsFromAllSets());
+              context.read<DecksBloc>().add(DecksLoad());
+              context.read<OpponentCardsBloc>().add(OpponentCardsClear());
+              context.read<PredictedCardsBloc>().add(PredictedCardsClear());
+              _championsController.clearAllSelection();
+              _regionsController.clearAllSelection();
+              _searchController.clear();
+            },
+          )
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),

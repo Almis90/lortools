@@ -25,6 +25,8 @@ class DecksBloc extends Bloc<DecksEvent, DecksState> {
   DecksBloc(DecksRepository decksRepository, SetsBloc setsBloc)
       : super(DecksInitial()) {
     on<DecksLoad>((event, emit) async {
+      allDecks.clear();
+
       var decks = await decksRepository.getDecks();
 
       if (decks == null) {
