@@ -1,11 +1,11 @@
 part of 'sets_bloc.dart';
 
 @immutable
-sealed class SetsState {}
+sealed class CardsState {}
 
-final class SetsInitial extends SetsState {}
+final class CardsInitial extends CardsState {}
 
-final class CardsLoaded extends SetsState {
+final class CardsLoaded extends CardsState {
   final List<LorCard> filteredCards;
   final List<LorCard> allCards;
 

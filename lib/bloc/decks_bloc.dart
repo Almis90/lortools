@@ -1,11 +1,15 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lortools/bloc/sets_bloc.dart';
 import 'package:lortools/helpers/card_helper.dart';
 import 'package:lortools/helpers/string_extensions.dart';
+import 'package:lortools/lor_deckcodes/card_code_and_count.dart';
 import 'package:lortools/lor_deckcodes/deck_encoder.dart';
 import 'package:lortools/models/champion.dart';
 import 'package:lortools/models/deck.dart';
+import 'package:lortools/models/decks.dart';
 import 'package:lortools/models/lor_card.dart';
 import 'package:lortools/repositories/decks_repository.dart';
 // ignore: depend_on_referenced_packages
@@ -16,123 +20,154 @@ part 'decks_state.dart';
 
 class DecksBloc extends Bloc<DecksEvent, DecksState> {
   final DeckEncoder deckEncoder = DeckEncoder();
+  final DecksRepository decksRepository;
+  final CardsBloc setsBloc;
   List<Deck> allDecks = [];
   List<Deck> filteredDecks = [];
-  List<Deck> predictedDecks = [];
   List<String> champions = [];
   List<String> regions = [];
 
-  DecksBloc(DecksRepository decksRepository, SetsBloc setsBloc)
-      : super(DecksInitial()) {
-    on<DecksLoad>((event, emit) async {
-      allDecks.clear();
+  DecksBloc(this.decksRepository, this.setsBloc) : super(DecksInitial()) {
+    on<DecksInitialize>(_onDecksInitialize);
 
-      var decks = await decksRepository.getDecks();
+    on<DecksLoad>(_onDecksLoad);
 
-      if (decks == null) {
-        return;
-      }
+    on<DecksFilterByChampions>(_onDecksFilterByChampions);
 
-      decks.stats?.seven?.europe?.expand<Deck>((deckStatsServer) {
-        var decksInfo = deckStatsServer.bestDecks?.split('/');
-        return decksInfo?.map((deckInfo) {
-              var deckStats = deckInfo.split(',');
-              return Deck(
-                  champions: deckStatsServer.assets?.champions
-                          ?.map(_listStringToChampion)
-                          .toList() ??
-                      [],
-                  regions: deckStatsServer.assets?.champions
-                          ?.map(_listStringToRegions)
-                          .toList() ??
-                      [],
-                  cards: deckEncoder.getDeckFromCode(deckStats[0]).map(
-                    (e) {
-                      var cardInfo = setsBloc.allCards.firstWhereOrNull(
-                          (element) => element.cardCode == e.cardCode);
+    on<DecksFilterByRegions>(_onDecksFilterByRegions);
+  }
 
-                      if (cardInfo == null) {
-                        return LorCard.unknown;
-                      }
-                      return LorCard(
-                        cardCode: e.cardCode,
-                        collectible: cardInfo.collectible,
-                        name: cardInfo.name,
-                        deckSet: cardInfo.deckSet,
-                        cost: cardInfo.cost,
-                        regions: cardInfo.regions,
-                        rarity: cardInfo.rarity,
-                        count: e.count,
-                      );
-                    },
-                  ).toList(),
-                  winrate: double.parse(deckStats[2]),
-                  playrate: double.parse(deckStats[3]),
-                  totalMatches: int.parse(deckStats[1]),
-                  deckCode: deckStats[0],
-                  source: 'MasteringRuneterra');
-            }) ??
-            [];
-      }).forEach((deck) {
-        allDecks.add(deck);
-      });
-      filteredDecks = allDecks.toList();
-      filteredDecks.sort(
-        (a, b) {
-          return b.winrate.compareTo(a.winrate);
-        },
-      );
+  FutureOr<void> _onDecksInitialize(
+    DecksInitialize event,
+    Emitter<DecksState> emit,
+  ) async {
+    allDecks.clear();
 
-      emit(DecksLoaded(
-        allDecks: allDecks,
-        filteredDecks: filteredDecks,
-      ));
+    var decks = await decksRepository.getDecks();
+
+    if (decks == null) {
+      return;
+    }
+
+    decks.stats?.seven?.europe?.expand<Deck>((deckStatsServer) {
+      var decksInfo = deckStatsServer.bestDecks?.split('/');
+      return decksInfo?.map((deckInfo) {
+            return deckStringToDeck(deckInfo, deckStatsServer, setsBloc);
+          }) ??
+          [];
+    }).forEach((deck) {
+      allDecks.add(deck);
     });
+    filteredDecks = allDecks.toList();
+    filteredDecks.sort(
+      (a, b) {
+        return b.winrate.compareTo(a.winrate);
+      },
+    );
 
-    on<DecksFilterByChampions>((event, emit) async {
-      champions = event.champions ?? [];
+    emit(DecksLoaded(
+      allDecks: allDecks,
+      filteredDecks: filteredDecks,
+    ));
+  }
 
-      filteredDecks = regions.isEmpty
-          ? allDecks
-          : allDecks
-              .where((deck) =>
-                  regions.every((region) => deck.regions.contains(region)))
-              .toList();
-      filteredDecks = filteredDecks
-          .where((deck) => champions.every((champion) =>
-              deck.champions.any((card) => card.cardCode == champion)))
-          .toList();
+  FutureOr<void> _onDecksLoad(
+    DecksLoad event,
+    Emitter<DecksState> emit,
+  ) {
+    filteredDecks = event.decks;
+    emit(DecksLoaded(allDecks: allDecks, filteredDecks: filteredDecks));
+  }
 
-      emit(DecksLoaded(
-        allDecks: allDecks,
-        filteredDecks: filteredDecks,
-      ));
-    });
+  FutureOr<void> _onDecksFilterByChampions(
+    DecksFilterByChampions event,
+    Emitter<DecksState> emit,
+  ) {
+    champions = event.champions ?? [];
 
-    on<DecksFilterByRegions>((event, emit) async {
-      regions = event.regions ?? [];
+    filteredDecks = _filterDecksByRegions();
+    filteredDecks = _filterDecksByChampions();
 
-      filteredDecks = regions.isEmpty
-          ? allDecks
-          : allDecks
-              .where((deck) =>
-                  regions.every((region) => deck.regions.contains(region)))
-              .toList();
-      filteredDecks = filteredDecks
-          .where((deck) => champions.every((champion) =>
-              deck.champions.any((card) => card.cardCode == champion)))
-          .toList();
+    emit(DecksLoaded(
+      allDecks: allDecks,
+      filteredDecks: filteredDecks,
+    ));
+  }
 
-      emit(DecksLoaded(
-        allDecks: allDecks,
-        filteredDecks: filteredDecks,
-      ));
-    });
+  FutureOr<void> _onDecksFilterByRegions(
+    DecksFilterByRegions event,
+    Emitter<DecksState> emit,
+  ) {
+    regions = event.regions ?? [];
 
-    on<DecksPredicted>((event, emit) async {
-      predictedDecks = event.decks;
-      emit(DecksLoaded(allDecks: allDecks, filteredDecks: event.decks));
-    });
+    filteredDecks = _filterDecksByRegions();
+    filteredDecks = _filterDecksByChampions();
+
+    emit(DecksLoaded(
+      allDecks: allDecks,
+      filteredDecks: filteredDecks,
+    ));
+  }
+
+  Deck deckStringToDeck(
+      String deckInfo, DeckStatsServer deckStatsServer, CardsBloc setsBloc) {
+    var deckStats = deckInfo.split(',');
+    return Deck(
+        champions: deckStatsServer.assets?.champions
+                ?.map(_listStringToChampion)
+                .toList() ??
+            [],
+        regions: deckStatsServer.assets?.champions
+                ?.map(_listStringToRegions)
+                .toList() ??
+            [],
+        cards: deckEncoder
+            .getDeckFromCode(deckStats[0])
+            .map(
+              (e) => _cardCodeAndCountToCard(setsBloc.allCards, e),
+            )
+            .toList(),
+        winrate: double.parse(deckStats[2]),
+        playrate: double.parse(deckStats[3]),
+        totalMatches: int.parse(deckStats[1]),
+        deckCode: deckStats[0],
+        source: 'MasteringRuneterra');
+  }
+
+  LorCard _cardCodeAndCountToCard(List<LorCard> allCards, CardCodeAndCount e) {
+    var cardInfo =
+        allCards.firstWhereOrNull((lorCard) => lorCard.cardCode == e.cardCode);
+
+    if (cardInfo == null) {
+      return LorCard.unknown;
+    }
+
+    return LorCard(
+      cardCode: e.cardCode,
+      collectible: cardInfo.collectible,
+      name: cardInfo.name,
+      deckSet: cardInfo.deckSet,
+      cost: cardInfo.cost,
+      regions: cardInfo.regions,
+      rarity: cardInfo.rarity,
+      count: e.count,
+    );
+  }
+
+  List<Deck> _filterDecksByChampions() {
+    return filteredDecks
+        .where((deck) => champions.every((champion) =>
+            deck.champions.any((card) => card.cardCode == champion)))
+        .toList();
+  }
+
+  List<Deck> _filterDecksByRegions() {
+    return regions.isEmpty
+        ? allDecks
+        : allDecks
+            .where((deck) =>
+                regions.every((region) => deck.regions.contains(region)))
+            .toList();
   }
 
   Champion _listStringToChampion(List<String> championInfo) {

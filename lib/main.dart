@@ -38,15 +38,15 @@ class MyApp extends StatelessWidget {
               RepositoryProvider.of<DecksRepository>(context),
             ),
           ),
-          BlocProvider<SetsBloc>(
-            create: (context) => SetsBloc(
+          BlocProvider<CardsBloc>(
+            create: (context) => CardsBloc(
               RepositoryProvider.of<SetsRepository>(context),
             ),
           ),
           BlocProvider<DecksBloc>(
             create: (context) => DecksBloc(
               RepositoryProvider.of<DecksRepository>(context),
-              BlocProvider.of<SetsBloc>(context),
+              BlocProvider.of<CardsBloc>(context),
             ),
           ),
           BlocProvider<OpponentCardsBloc>(

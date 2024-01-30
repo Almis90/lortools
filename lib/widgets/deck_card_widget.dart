@@ -30,7 +30,7 @@ class DeckCardWidget extends StatelessWidget {
         ),
       ),
       onTap: () async {
-        context.read<DecksBloc>().add(DecksPredicted([deck]));
+        context.read<DecksBloc>().add(DecksLoad([deck]));
         context.read<PredictedCardsBloc>().add(PredictedCardsLoad(deck.cards));
       },
       onLongPress: () async {

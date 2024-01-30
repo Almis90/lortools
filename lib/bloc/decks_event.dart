@@ -3,7 +3,7 @@ part of 'decks_bloc.dart';
 @immutable
 sealed class DecksEvent {}
 
-class DecksLoad extends DecksEvent {}
+class DecksInitialize extends DecksEvent {}
 
 class DecksFilterByChampions extends DecksEvent {
   final List<String>? champions;
@@ -17,8 +17,8 @@ class DecksFilterByRegions extends DecksEvent {
   DecksFilterByRegions(this.regions);
 }
 
-class DecksPredicted extends DecksEvent {
+class DecksLoad extends DecksEvent {
   final List<Deck> decks;
 
-  DecksPredicted(this.decks);
+  DecksLoad(this.decks);
 }

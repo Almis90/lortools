@@ -46,7 +46,7 @@ class _DecksPageState extends State<DecksPage> {
   }
 
   void initializeDecks() {
-    context.read<SetsBloc>().add(LoadAllCardsFromAllSets());
+    context.read<CardsBloc>().add(CardsLoadFromAllSets());
   }
 
   @override
@@ -58,8 +58,8 @@ class _DecksPageState extends State<DecksPage> {
           GestureDetector(
             child: const Icon(Icons.restart_alt),
             onTap: () {
-              context.read<SetsBloc>().add(LoadAllCardsFromAllSets());
-              context.read<DecksBloc>().add(DecksLoad());
+              context.read<CardsBloc>().add(CardsLoadFromAllSets());
+              context.read<DecksBloc>().add(DecksInitialize());
               context.read<OpponentCardsBloc>().add(OpponentCardsClear());
               context.read<PredictedCardsBloc>().add(PredictedCardsClear());
               _championsController.clearAllSelection();
@@ -127,7 +127,7 @@ class _DecksPageState extends State<DecksPage> {
                             focusNode: _searchFocusNode,
                             onChanged: (value) {
                               context
-                                  .read<SetsBloc>()
+                                  .read<CardsBloc>()
                                   .add(FilterCardsByName(value));
                             },
                             decoration: const InputDecoration(
@@ -232,12 +232,12 @@ class _DecksPageState extends State<DecksPage> {
   }
 
   Widget _buildCards() {
-    return BlocBuilder<SetsBloc, SetsState>(
+    return BlocBuilder<CardsBloc, CardsState>(
       builder: (context, state) {
         if (state is CardsLoaded) {
           var decksBloc = context.read<DecksBloc>();
           if (decksBloc.state is DecksInitial) {
-            decksBloc.add(DecksLoad());
+            decksBloc.add(DecksInitialize());
           }
 
           return _buildCardLayoutWithSearch(
@@ -325,7 +325,7 @@ class _DecksPageState extends State<DecksPage> {
   }
 
   Widget _buildChampionDropdown() {
-    return BlocBuilder<SetsBloc, SetsState>(
+    return BlocBuilder<CardsBloc, CardsState>(
       builder: (context, state) {
         if (state is CardsLoaded) {
           var champions = _getChampions(state.allCards);
@@ -352,7 +352,7 @@ class _DecksPageState extends State<DecksPage> {
   }
 
   Widget _buildRegionDropdown() {
-    return BlocBuilder<SetsBloc, SetsState>(
+    return BlocBuilder<CardsBloc, CardsState>(
       builder: (context, state) {
         if (state is CardsLoaded) {
           var regions = _getRegions(state.allCards);
@@ -437,7 +437,7 @@ class _DecksPageState extends State<DecksPage> {
     var selectedTitles = selectedOptions.map(_valueItemToString).toList();
 
     context.read<DecksBloc>().add(DecksFilterByChampions(selectedTitles));
-    context.read<SetsBloc>().add(CardsFilter(selectedTitles,
+    context.read<CardsBloc>().add(CardsFilter(selectedTitles,
         _regionsController.selectedOptions.map(_valueItemToString).toList()));
   }
 
@@ -445,7 +445,7 @@ class _DecksPageState extends State<DecksPage> {
     var selectedTitles = selectedOptions.map(_valueItemToString).toList();
 
     context.read<DecksBloc>().add(DecksFilterByRegions(selectedTitles));
-    context.read<SetsBloc>().add(CardsFilter(
+    context.read<CardsBloc>().add(CardsFilter(
         _championsController.selectedOptions.map(_valueItemToString).toList(),
         selectedTitles));
   }
