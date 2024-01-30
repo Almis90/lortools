@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:lortools/helpers/card_helper.dart';
 import 'package:lortools/models/lor_card.dart';
@@ -19,20 +20,7 @@ class _CardPredictionWidgetState extends State<CardPredictionWidget> {
       builder: (context, constraints) {
         return Stack(
           children: [
-            CachedNetworkImage(
-              imageUrl: CardHelper.getImageUrlFromCodeAndSet(
-                  code: widget.lorCard.card.cardCode,
-                  set: widget.lorCard.card.deckSet),
-              fit: BoxFit.cover,
-              width: double.infinity,
-              height: 50,
-              placeholder: (context, url) => Container(
-                width: double.infinity,
-                height: 50,
-                color: Colors.black,
-              ),
-              errorWidget: (context, url, error) => const Icon(Icons.error),
-            ),
+            _cardImage(),
             Container(
               width: double.infinity,
               height: 50,
@@ -151,6 +139,31 @@ class _CardPredictionWidgetState extends State<CardPredictionWidget> {
           ],
         );
       },
+    );
+  }
+
+  Widget _cardImage() {
+    var imageUrl = CardHelper.getImageUrlFromCodeAndSet(
+        code: widget.lorCard.card.cardCode, set: widget.lorCard.card.deckSet);
+    if (kIsWeb) {
+      return Image.network(
+        imageUrl,
+        fit: BoxFit.cover,
+        width: double.infinity,
+        height: 50,
+      );
+    }
+    return CachedNetworkImage(
+      imageUrl: imageUrl,
+      fit: BoxFit.cover,
+      width: double.infinity,
+      height: 50,
+      placeholder: (context, url) => Container(
+        width: double.infinity,
+        height: 50,
+        color: Colors.black,
+      ),
+      errorWidget: (context, url, error) => const Icon(Icons.error),
     );
   }
 }

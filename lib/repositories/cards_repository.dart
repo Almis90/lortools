@@ -5,9 +5,11 @@ import 'package:flutter/foundation.dart';
 import 'package:lortools/models/set.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class SetsRepository {
+class CardsRepository {
   final Dio _dio = Dio();
   final String _url =
+      'https://dd.b.pvp.net/latest/set{0}/en_us/data/set{0}-en_us.json';
+  final String _corsUrl = 'https://corsproxy.io/?'
       'https://dd.b.pvp.net/latest/set{0}/en_us/data/set{0}-en_us.json';
   final List<String> _setVersions = [
     '1',
@@ -66,7 +68,8 @@ class SetsRepository {
       _dio.options.headers['User-Agent'] =
           'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15';
 
-      Response response = await _dio.get(_url.replaceAll('{0}', version));
+      var url = kIsWeb ? _corsUrl : _url;
+      Response response = await _dio.get(url.replaceAll('{0}', version));
       if (response.statusCode == 200) {
         String responseData = json.encode(response.data);
         _saveToCache(prefs, version, responseData);

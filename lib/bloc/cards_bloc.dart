@@ -2,19 +2,19 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lortools/models/lor_card.dart';
-import 'package:lortools/repositories/sets_repository.dart';
+import 'package:lortools/repositories/cards_repository.dart';
 
 part 'cards_event.dart';
 part 'cards_state.dart';
 
 class CardsBloc extends Bloc<CardsEvent, CardsState> {
-  final SetsRepository setsRepository;
+  final CardsRepository cardsRepository;
   List<LorCard> allCards = [];
   List<LorCard> filteredCards = [];
   String name = '';
   List<String> regions = [];
 
-  CardsBloc(this.setsRepository) : super(CardsInitial()) {
+  CardsBloc(this.cardsRepository) : super(CardsInitial()) {
     on<CardsLoadFromAllSets>(_onCardsLoadFromAllSets);
     on<CardsFilter>(_onCardsFilter);
     on<FilterCardsByName>(_onCardsFilterByName);
@@ -24,7 +24,7 @@ class CardsBloc extends Bloc<CardsEvent, CardsState> {
     CardsLoadFromAllSets state,
     Emitter<CardsState> emit,
   ) async {
-    var setCards = await setsRepository.getAllCardsFromAllSet();
+    var setCards = await cardsRepository.getAllCardsFromAllSet();
     allCards = filteredCards = setCards
         .map(
           (e) => LorCard(

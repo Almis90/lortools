@@ -46,6 +46,7 @@ dependencies:
   flutter_archive: ^6.0.0
   auto_route: ^7.8.4
   darq: ^2.0.0
+  firebase_core: ^2.24.2
 
 dev_dependencies:
   flutter_test:

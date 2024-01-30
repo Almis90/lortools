@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lortools/auto_router.dart';
@@ -7,10 +8,15 @@ import 'package:lortools/bloc/opponent_cards_bloc.dart';
 import 'package:lortools/bloc/predicted_cards_bloc.dart';
 import 'package:lortools/bloc/search_cards_bloc.dart';
 import 'package:lortools/bloc/cards_bloc.dart';
+import 'package:lortools/firebase_options.dart';
 import 'package:lortools/repositories/decks_repository.dart';
-import 'package:lortools/repositories/sets_repository.dart';
+import 'package:lortools/repositories/cards_repository.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(MyApp());
 }
 
@@ -26,21 +32,21 @@ class MyApp extends StatelessWidget {
         RepositoryProvider<DecksRepository>(
           create: (context) => DecksRepository(),
         ),
-        RepositoryProvider<SetsRepository>(
-          create: (context) => SetsRepository(),
+        RepositoryProvider<CardsRepository>(
+          create: (context) => CardsRepository(),
         ),
       ],
       child: MultiBlocProvider(
         providers: [
           BlocProvider<AssetsBloc>(
             create: (context) => AssetsBloc(
-              RepositoryProvider.of<SetsRepository>(context),
+              RepositoryProvider.of<CardsRepository>(context),
               RepositoryProvider.of<DecksRepository>(context),
             ),
           ),
           BlocProvider<CardsBloc>(
             create: (context) => CardsBloc(
-              RepositoryProvider.of<SetsRepository>(context),
+              RepositoryProvider.of<CardsRepository>(context),
             ),
           ),
           BlocProvider<DecksBloc>(

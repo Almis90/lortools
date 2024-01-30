@@ -21,13 +21,13 @@ part 'decks_state.dart';
 class DecksBloc extends Bloc<DecksEvent, DecksState> {
   final DeckEncoder deckEncoder = DeckEncoder();
   final DecksRepository decksRepository;
-  final CardsBloc setsBloc;
+  final CardsBloc cardsBloc;
   List<Deck> allDecks = [];
   List<Deck> filteredDecks = [];
   List<String> champions = [];
   List<String> regions = [];
 
-  DecksBloc(this.decksRepository, this.setsBloc) : super(DecksInitial()) {
+  DecksBloc(this.decksRepository, this.cardsBloc) : super(DecksInitial()) {
     on<DecksInitialize>(_onDecksInitialize);
 
     on<DecksLoad>(_onDecksLoad);
@@ -52,7 +52,7 @@ class DecksBloc extends Bloc<DecksEvent, DecksState> {
     decks.stats?.seven?.europe?.expand<Deck>((deckStatsServer) {
       var decksInfo = deckStatsServer.bestDecks?.split('/');
       return decksInfo?.map((deckInfo) {
-            return deckStringToDeck(deckInfo, deckStatsServer, setsBloc);
+            return deckStringToDeck(deckInfo, deckStatsServer, cardsBloc);
           }) ??
           [];
     }).forEach((deck) {
@@ -110,7 +110,7 @@ class DecksBloc extends Bloc<DecksEvent, DecksState> {
   }
 
   Deck deckStringToDeck(
-      String deckInfo, DeckStatsServer deckStatsServer, CardsBloc setsBloc) {
+      String deckInfo, DeckStatsServer deckStatsServer, CardsBloc cardsBloc) {
     var deckStats = deckInfo.split(',');
     return Deck(
         champions: deckStatsServer.assets?.champions
@@ -124,7 +124,7 @@ class DecksBloc extends Bloc<DecksEvent, DecksState> {
         cards: deckEncoder
             .getDeckFromCode(deckStats[0])
             .map(
-              (e) => _cardCodeAndCountToCard(setsBloc.allCards, e),
+              (e) => _cardCodeAndCountToCard(cardsBloc.allCards, e),
             )
             .toList(),
         winrate: double.parse(deckStats[2]),

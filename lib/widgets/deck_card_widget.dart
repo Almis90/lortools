@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -87,14 +88,27 @@ class DeckCardWidget extends StatelessWidget {
   Widget _buildImage(String imageUrl, BoxConstraints constraints) {
     return Padding(
       padding: const EdgeInsets.all(2.0),
-      child: CachedNetworkImage(
-        imageUrl: imageUrl,
+      child: _deckCardImage(imageUrl, constraints),
+    );
+  }
+
+  Widget _deckCardImage(String imageUrl, BoxConstraints constraints) {
+    if (kIsWeb) {
+      return Image.network(
+        imageUrl,
         fit: BoxFit.cover,
         width: constraints.maxWidth / 3 - 4,
         height: constraints.maxWidth / 3 - 4,
-        placeholder: (context, url) => const CircularProgressIndicator(),
-        errorWidget: (context, url, error) => const Icon(Icons.error),
-      ),
+      );
+    }
+
+    return CachedNetworkImage(
+      imageUrl: imageUrl,
+      fit: BoxFit.cover,
+      width: constraints.maxWidth / 3 - 4,
+      height: constraints.maxWidth / 3 - 4,
+      placeholder: (context, url) => const CircularProgressIndicator(),
+      errorWidget: (context, url, error) => const Icon(Icons.error),
     );
   }
 }

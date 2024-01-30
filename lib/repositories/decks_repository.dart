@@ -8,6 +8,8 @@ class DecksRepository {
   final Dio _dio = Dio();
   final String _url =
       'https://masteringruneterra.com/wp-content/plugins/deck-viewer/resource/meta-data.json';
+  final String _corsUrl =
+      'https://corsproxy.io/?${'https://masteringruneterra.com/wp-content/plugins/deck-viewer/resource/meta-data.json'}';
 
   Future<bool> fetchDecks() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -53,7 +55,8 @@ class DecksRepository {
 
   Future<bool> _fetchAndCacheDecks(SharedPreferences prefs) async {
     try {
-      Response response = await _dio.get(_url);
+      var url = kIsWeb ? _corsUrl : _url;
+      Response response = await _dio.get(url);
       if (response.statusCode == 200) {
         String responseData = json.encode(response.data);
         _saveToCache(prefs, responseData);
