@@ -16,7 +16,7 @@ class LorCard {
     required this.cost,
     required this.regions,
     required this.rarity,
-    this.count = 0,
+    this.count = 1,
   });
 
   void increaseCount() {

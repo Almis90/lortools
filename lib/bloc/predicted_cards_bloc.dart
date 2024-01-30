@@ -2,6 +2,7 @@ import 'package:darq/darq.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lortools/bloc/decks_bloc.dart';
+import 'package:lortools/models/card_deck.dart';
 import 'package:lortools/models/lor_card.dart';
 
 part 'predicted_cards_event.dart';
@@ -16,9 +17,6 @@ class PredictedCardsBloc
     on<PredictedCardsUpdate>((event, emit) {
       var decks = decksBloc.filteredDecks;
       var cards = event.cards;
-      var predictedCards = cards
-          .map((e) => PredictLorCard(card: e, percentages: [0, 0, 0]))
-          .toList();
       var predictedDecks = decks.toList();
 
       for (var i = 0; i < decks.length; i++) {
@@ -36,20 +34,26 @@ class PredictedCardsBloc
         }
       }
 
-      var deckCards = predictedDecks.expand((deck) => deck.cards.map((card) => {
-            'card': card,
-            'deck': deck,
-          }));
+      var deckCards = predictedDecks.expand<CardDeck>(
+          (deck) => deck.cards.map<CardDeck>((card) => CardDeck(
+                card: card,
+                deck: deck,
+              )));
 
       var groupedByCardCode = deckCards
-          .groupBy((element) => (element['card'] as LorCard).cardCode)
-          .map((e) =>
-              PredictLorCard(card: e.first['card'] as LorCard, percentages: [
-                e.count / predictedDecks.length * 100,
-                (e.count - 1) / predictedDecks.length * 100,
-                (e.count - 2) / predictedDecks.length * 100
-              ]))
-          .toList();
+          .groupBy((carDeck) => carDeck.card.cardCode)
+          .map((cardDeckGroup) {
+        var card = cardDeckGroup.first.card;
+        return PredictLorCard(card: card, percentages: [
+          cardDeckGroup.count / predictedDecks.length * 100,
+          cardDeckGroup.where((cardDeck) => cardDeck.card.count > 1).length /
+              predictedDecks.length *
+              100,
+          cardDeckGroup.where((cardDeck) => cardDeck.card.count > 2).length /
+              predictedDecks.length *
+              100
+        ]);
+      }).toList();
 
       decksBloc.add(DecksPredicted(predictedDecks));
       emit(PredictedCardsUpdated(groupedByCardCode));
