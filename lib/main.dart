@@ -6,7 +6,7 @@ import 'package:lortools/bloc/decks_bloc.dart';
 import 'package:lortools/bloc/opponent_cards_bloc.dart';
 import 'package:lortools/bloc/predicted_cards_bloc.dart';
 import 'package:lortools/bloc/search_cards_bloc.dart';
-import 'package:lortools/bloc/sets_bloc.dart';
+import 'package:lortools/bloc/cards_bloc.dart';
 import 'package:lortools/repositories/decks_repository.dart';
 import 'package:lortools/repositories/sets_repository.dart';
 

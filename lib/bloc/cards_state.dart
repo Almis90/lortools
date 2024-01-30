@@ -1,4 +1,4 @@
-part of 'sets_bloc.dart';
+part of 'cards_bloc.dart';
 
 @immutable
 sealed class CardsState {}

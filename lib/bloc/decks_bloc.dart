@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lortools/bloc/sets_bloc.dart';
+import 'package:lortools/bloc/cards_bloc.dart';
 import 'package:lortools/helpers/card_helper.dart';
 import 'package:lortools/helpers/string_extensions.dart';
 import 'package:lortools/lor_deckcodes/card_code_and_count.dart';
