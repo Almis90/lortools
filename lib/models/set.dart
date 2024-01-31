@@ -96,9 +96,9 @@ class SetCard {
   });
 
   factory SetCard.fromJson(Map<String, dynamic> json) =>
-      _$LorCardFromJson(json);
+      _$SetCardFromJson(json);
 
-  Map<String, dynamic> toJson() => _$LorCardToJson(this);
+  Map<String, dynamic> toJson() => _$SetCardToJson(this);
 }
 
 @JsonSerializable()

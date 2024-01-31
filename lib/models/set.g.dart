@@ -6,7 +6,7 @@ part of 'set.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-SetCard _$LorCardFromJson(Map<String, dynamic> json) => SetCard(
+SetCard _$SetCardFromJson(Map<String, dynamic> json) => SetCard(
       associatedCards: json['associatedCards'] as List<dynamic>?,
       associatedCardRefs: (json['associatedCardRefs'] as List<dynamic>?)
           ?.map((e) => e as String)
@@ -54,7 +54,7 @@ SetCard _$LorCardFromJson(Map<String, dynamic> json) => SetCard(
           .toList(),
     );
 
-Map<String, dynamic> _$LorCardToJson(SetCard instance) => <String, dynamic>{
+Map<String, dynamic> _$SetCardToJson(SetCard instance) => <String, dynamic>{
       'associatedCards': instance.associatedCards,
       'associatedCardRefs': instance.associatedCardRefs,
       'assets': instance.assets,

@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lortools/auto_router.gr.dart';
 import 'package:lortools/bloc/decks_bloc.dart';
 import 'package:lortools/bloc/opponent_cards_bloc.dart';
 import 'package:lortools/bloc/predicted_cards_bloc.dart';
@@ -10,6 +11,7 @@ import 'package:lortools/helpers/card_helper.dart';
 import 'package:lortools/models/champion.dart';
 import 'package:lortools/models/deck.dart';
 import 'package:lortools/models/lor_card.dart';
+import 'package:lortools/pages/settings_page.dart';
 import 'package:lortools/widgets/card_prediction_widget.dart';
 import 'package:lortools/widgets/card_widget.dart';
 import 'package:lortools/widgets/deck_card_widget.dart';
@@ -24,6 +26,7 @@ class DecksPage extends StatefulWidget {
 }
 
 class _DecksPageState extends State<DecksPage> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final MultiSelectController<String> _championsController =
       MultiSelectController<String>();
   final MultiSelectController<String> _regionsController =
@@ -52,6 +55,7 @@ class _DecksPageState extends State<DecksPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       appBar: AppBar(
         title: const Text('Decks'),
         actions: [
@@ -66,9 +70,16 @@ class _DecksPageState extends State<DecksPage> {
               _regionsController.clearAllSelection();
               _searchController.clear();
             },
-          )
+          ),
+          GestureDetector(
+            child: const Icon(Icons.settings),
+            onTap: () {
+              _scaffoldKey.currentState?.openEndDrawer();
+            },
+          ),
         ],
       ),
+      endDrawer: const SettingsPage(),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
