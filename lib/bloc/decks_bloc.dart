@@ -59,11 +59,7 @@ class DecksBloc extends Bloc<DecksEvent, DecksState> {
       allDecks.add(deck);
     });
     filteredDecks = allDecks.toList();
-    filteredDecks.sort(
-      (a, b) {
-        return b.winrate.compareTo(a.winrate);
-      },
-    );
+    filteredDecks.sort(_sortByWinrate);
 
     emit(DecksLoaded(
       allDecks: allDecks,
@@ -87,6 +83,7 @@ class DecksBloc extends Bloc<DecksEvent, DecksState> {
 
     filteredDecks = _filterDecksByRegions();
     filteredDecks = _filterDecksByChampions();
+    filteredDecks.sort(_sortByWinrate);
 
     emit(DecksLoaded(
       allDecks: allDecks,
@@ -102,6 +99,7 @@ class DecksBloc extends Bloc<DecksEvent, DecksState> {
 
     filteredDecks = _filterDecksByRegions();
     filteredDecks = _filterDecksByChampions();
+    filteredDecks.sort(_sortByWinrate);
 
     emit(DecksLoaded(
       allDecks: allDecks,
@@ -190,5 +188,9 @@ class DecksBloc extends Bloc<DecksEvent, DecksState> {
     } else {
       return region.toTitleCase();
     }
+  }
+
+  int _sortByWinrate(Deck a, Deck b) {
+    return b.winrate.compareTo(a.winrate);
   }
 }

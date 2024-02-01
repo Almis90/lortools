@@ -26,19 +26,25 @@ class PredictedCardsBloc
     Emitter emit,
   ) {
     lorCards.clear();
-    emit(PredictedCardsUpdated(lorCards));
+    emit(PredictedCardsInitial());
   }
 
   FutureOr<void> _onPredictedCardsUpdate(
     PredictedCardsUpdate event,
     Emitter emit,
   ) {
-    var predictedDecks = _filterDecks(decksBloc.filteredDecks, event.cards);
-    var deckCards = _transformDecksToCardDecks(predictedDecks);
-    var groupedByCardCode = _groupByCardCode(deckCards, predictedDecks.length);
+    if (event.cards.isEmpty) {
+      emit(PredictedCardsInitial());
+      decksBloc.add(DecksInitialize());
+    } else {
+      var predictedDecks = _filterDecks(decksBloc.filteredDecks, event.cards);
+      var deckCards = _transformDecksToCardDecks(predictedDecks);
+      var groupedByCardCode =
+          _groupByCardCode(deckCards, predictedDecks.length);
 
-    decksBloc.add(DecksLoad(predictedDecks));
-    emit(PredictedCardsUpdated(groupedByCardCode));
+      decksBloc.add(DecksLoad(predictedDecks));
+      emit(PredictedCardsUpdated(groupedByCardCode));
+    }
   }
 
   List<Deck> _filterDecks(List<Deck> decks, List<LorCard> cards) {

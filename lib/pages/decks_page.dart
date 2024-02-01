@@ -34,7 +34,7 @@ class _DecksPageState extends State<DecksPage> {
   final GlobalKey _searchCardIconKey = GlobalKey();
   final GlobalKey _cardsKey = GlobalKey();
   final GlobalKey _opponentCardsKey = GlobalKey();
-  final GlobalKey _predictedCardsKEy = GlobalKey();
+  final GlobalKey _predictedCardsKey = GlobalKey();
 
   final MultiSelectController<String> _championsController =
       MultiSelectController<String>();
@@ -77,13 +77,13 @@ class _DecksPageState extends State<DecksPage> {
               Icons.restart_alt,
             ),
             onTap: () {
-              context.read<CardsBloc>().add(CardsLoadFromAllSets());
-              context.read<DecksBloc>().add(DecksInitialize());
-              context.read<OpponentCardsBloc>().add(OpponentCardsClear());
-              context.read<PredictedCardsBloc>().add(PredictedCardsClear());
               _championsController.clearAllSelection();
               _regionsController.clearAllSelection();
               _searchController.clear();
+              context.read<CardsBloc>().add(CardsLoadFromAllSets());
+              context.read<OpponentCardsBloc>().add(OpponentCardsClear());
+              context.read<PredictedCardsBloc>().add(PredictedCardsClear());
+              context.read<DecksBloc>().add(DecksInitialize());
             },
           ),
           GestureDetector(
@@ -298,9 +298,19 @@ class _DecksPageState extends State<DecksPage> {
               'Cards',
               DragTarget<LorCard>(
                 onAccept: (data) {
-                  context
-                      .read<OpponentCardsBloc>()
-                      .add(OpponentCardsRemove(data));
+                  var opponentCardsBloc = context.read<OpponentCardsBloc>();
+                  opponentCardsBloc.add(OpponentCardsRemove(data));
+
+                  if (data.rarity == 'Champion' &&
+                      _championsController.selectedOptions
+                          .any((x) => x.value == data.cardCode)) {
+                    _championsController.clearSelection(
+                        _championsController.options.firstWhere(
+                            (element) => element.value == data.cardCode));
+                  }
+
+                  context.read<PredictedCardsBloc>().add(PredictedCardsUpdate(
+                      opponentCardsBloc.cards.toList()..remove(data)));
                 },
                 builder: (context, candidateData, rejectedData) {
                   var uniqueCards = _getUniqueSortedCards(state.filteredCards);
@@ -350,7 +360,7 @@ class _DecksPageState extends State<DecksPage> {
           }
         },
       ),
-      _predictedCardsKEy,
+      _predictedCardsKey,
     );
   }
 
@@ -619,7 +629,7 @@ class _DecksPageState extends State<DecksPage> {
                   onPrevious: controller.previous,
                   nextText: 'Next',
                   previousText: 'Previous',
-                  text: "Find a card by using it's name.");
+                  text: "Find a card by using its name.");
             },
           ),
         ],
@@ -645,7 +655,7 @@ class _DecksPageState extends State<DecksPage> {
       ),
       TargetFocus(
         identify: '_predictedCardsKEy',
-        keyTarget: _predictedCardsKEy,
+        keyTarget: _predictedCardsKey,
         shape: ShapeLightFocus.RRect,
         contents: [
           TargetContent(
