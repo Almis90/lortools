@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lortools/bloc/decks_bloc.dart';
 import 'package:lortools/bloc/settings_bloc.dart';
 import 'package:motion_toast/motion_toast.dart';
 import 'package:multi_dropdown/multiselect_dropdown.dart';
@@ -187,6 +188,8 @@ class _SettingsPageState extends State<SettingsPage> {
             .where((valueItem) => valueItem.value != null)
             .map((valueItem) => valueItem.value!)
             .toList()));
+
+        context.read<DecksBloc>().add(DecksInitialize());
       }
     }
   }
@@ -199,6 +202,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
     if (region != null) {
       context.read<SettingsBloc>().add(UpdateRegionEvent(region));
+      context.read<DecksBloc>().add(DecksInitialize());
     }
   }
 
@@ -210,6 +214,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
     if (format != null) {
       context.read<SettingsBloc>().add(UpdateFormatEvent(format));
+      context.read<DecksBloc>().add(DecksInitialize());
     }
   }
 
@@ -221,6 +226,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
     if (rank != null) {
       context.read<SettingsBloc>().add(UpdateRankEvent(rank));
+      context.read<DecksBloc>().add(DecksInitialize());
     }
   }
 
@@ -232,6 +238,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
     if (timePeriod != null) {
       context.read<SettingsBloc>().add(UpdateTimePeriodEvent(timePeriod));
+      context.read<DecksBloc>().add(DecksInitialize());
     }
   }
 }

@@ -58,6 +58,7 @@ class MyApp extends StatelessWidget {
           BlocProvider<DecksBloc>(
             create: (context) => DecksBloc(
               RepositoryProvider.of<DecksRepository>(context),
+              RepositoryProvider.of<SettingsRepository>(context),
               BlocProvider.of<CardsBloc>(context),
             ),
           ),

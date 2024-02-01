@@ -14,6 +14,7 @@ import 'package:lortools/models/lor_card.dart';
 import 'package:lortools/repositories/decks_repository.dart';
 // ignore: depend_on_referenced_packages
 import 'package:collection/collection.dart';
+import 'package:lortools/repositories/settings_repository.dart';
 
 part 'decks_event.dart';
 part 'decks_state.dart';
@@ -21,13 +22,15 @@ part 'decks_state.dart';
 class DecksBloc extends Bloc<DecksEvent, DecksState> {
   final DeckEncoder deckEncoder = DeckEncoder();
   final DecksRepository decksRepository;
+  final SettingsRepository settingsRepository;
   final CardsBloc cardsBloc;
   List<Deck> allDecks = [];
   List<Deck> filteredDecks = [];
   List<String> champions = [];
   List<String> regions = [];
 
-  DecksBloc(this.decksRepository, this.cardsBloc) : super(DecksInitial()) {
+  DecksBloc(this.decksRepository, this.settingsRepository, this.cardsBloc)
+      : super(DecksInitial()) {
     on<DecksInitialize>(_onDecksInitialize);
 
     on<DecksLoad>(_onDecksLoad);
@@ -49,7 +52,9 @@ class DecksBloc extends Bloc<DecksEvent, DecksState> {
       return;
     }
 
-    decks.stats?.seven?.europe?.expand<Deck>((deckStatsServer) {
+    var decksStatsServers = await _getDeckStatsServers(decks.stats);
+
+    decksStatsServers?.expand<Deck>((deckStatsServer) {
       var decksInfo = deckStatsServer.bestDecks?.split('/');
       return decksInfo?.map((deckInfo) {
             return deckStringToDeck(deckInfo, deckStatsServer, cardsBloc);
@@ -192,5 +197,34 @@ class DecksBloc extends Bloc<DecksEvent, DecksState> {
 
   int _sortByWinrate(Deck a, Deck b) {
     return b.winrate.compareTo(a.winrate);
+  }
+
+  Future<List<DeckStatsServer>?> _getDeckStatsServers(DeckStats? stats) async {
+    var server = await settingsRepository.getRegion();
+    server = server.toLowerCase();
+    var timePeriod = await settingsRepository.getTimePeriod();
+    timePeriod = timePeriod.toLowerCase();
+    DeckStatsServers? deckStatsServer;
+    List<DeckStatsServer>? deckStatsServers;
+
+    if (timePeriod == "current patch") {
+      deckStatsServer = stats?.patch;
+    } else if (server == "last 3 days") {
+      deckStatsServer = stats?.three;
+    } else {
+      deckStatsServer = stats?.seven;
+    }
+
+    if (server == "americas") {
+      deckStatsServers = deckStatsServer?.americas;
+    } else if (server == "europe") {
+      deckStatsServers = deckStatsServer?.europe;
+    } else if (server == "apac") {
+      deckStatsServers = deckStatsServer?.sea;
+    } else {
+      deckStatsServers = deckStatsServer?.everyone;
+    }
+
+    return deckStatsServers;
   }
 }
