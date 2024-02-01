@@ -11,7 +11,7 @@ class Champion {
 
   @override
   bool operator ==(Object other) =>
-      identical(this, other) || other is Champion && cardCode == other.cardCode;
+      other is Champion && cardCode == other.cardCode;
 
   @override
   int get hashCode => name.hashCode ^ imageUrl.hashCode;

@@ -26,6 +26,7 @@ class CardsBloc extends Bloc<CardsEvent, CardsState> {
   ) async {
     var setCards = await cardsRepository.getAllCardsFromAllSet();
     allCards = filteredCards = setCards
+        .where((element) => element.collectible == true)
         .map(
           (e) => LorCard(
             cardCode: e.cardCode ?? 'unknown',

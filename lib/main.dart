@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lortools/auto_router.dart';
+import 'package:lortools/bloc/app_bloc.dart';
 import 'package:lortools/bloc/assets_bloc.dart';
 import 'package:lortools/bloc/decks_bloc.dart';
 import 'package:lortools/bloc/opponent_cards_bloc.dart';
@@ -76,6 +77,9 @@ class MyApp extends StatelessWidget {
               settingsRepository:
                   RepositoryProvider.of<SettingsRepository>(context),
             ),
+          ),
+          BlocProvider<AppBloc>(
+            create: (context) => AppBloc(),
           ),
         ],
         child: MaterialApp.router(

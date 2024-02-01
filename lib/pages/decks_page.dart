@@ -1,6 +1,8 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:darq/darq.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lortools/bloc/app_bloc.dart';
 import 'package:lortools/bloc/decks_bloc.dart';
 import 'package:lortools/bloc/opponent_cards_bloc.dart';
 import 'package:lortools/bloc/predicted_cards_bloc.dart';
@@ -17,7 +19,10 @@ import 'package:lortools/widgets/card_widget.dart';
 import 'package:lortools/widgets/deck_card_widget.dart';
 import 'package:lortools/widgets/tutorial_card_widget.dart';
 import 'package:multi_dropdown/multiselect_dropdown.dart';
+import 'package:quickalert/models/quickalert_type.dart';
+import 'package:quickalert/widgets/quickalert_dialog.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 @RoutePage()
 class DecksPage extends StatefulWidget {
@@ -71,6 +76,45 @@ class _DecksPageState extends State<DecksPage> {
       appBar: AppBar(
         title: const Text('Decks'),
         actions: [
+          BlocConsumer<AppBloc, AppState>(
+            listener: (context, state) {
+              if (state is AppPackageInfoLoadedState) {
+                QuickAlert.show(
+                    context: context,
+                    type: QuickAlertType.success,
+                    customAsset: 'packages/quickalert/assets/success.gif',
+                    title: 'App Version',
+                    text: 'v${state.version} (${state.buildNumber})');
+              }
+            },
+            buildWhen: (previous, current) {
+              return current is AppInitial;
+            },
+            builder: (context, state) {
+              return GestureDetector(
+                child: const Icon(
+                  Icons.info_outline,
+                ),
+                onTap: () {
+                  context.read<AppBloc>().add(AppPackageInfoLoadEvent());
+                },
+              );
+            },
+          ),
+          const SizedBox(width: 4),
+          GestureDetector(
+            child: const Icon(
+              Icons.discord,
+            ),
+            onTap: () async {
+              final discordUrl = Uri.parse('https://discord.gg/757eAnZx4d');
+
+              if (await canLaunchUrl(discordUrl)) {
+                await launchUrl(discordUrl);
+              }
+            },
+          ),
+          const SizedBox(width: 4),
           GestureDetector(
             child: Icon(
               key: _resetIconKey,
@@ -86,6 +130,7 @@ class _DecksPageState extends State<DecksPage> {
               context.read<DecksBloc>().add(DecksInitialize());
             },
           ),
+          const SizedBox(width: 4),
           GestureDetector(
             child: Icon(
               key: _settingsIconKey,
@@ -521,6 +566,7 @@ class _DecksPageState extends State<DecksPage> {
             name: e.name,
             cardCode: e.cardCode,
             imageUrl: CardHelper.getImageUrlFromCode(e.cardCode)))
+        .distinct()
         .toList()
       ..sort((a, b) => a.name.compareTo(b.name));
   }
@@ -565,114 +611,118 @@ class _DecksPageState extends State<DecksPage> {
 
   Future<void> _showTutorial() async {
     await Future.delayed(const Duration(seconds: 1));
-    _tutorialCoachMark = TutorialCoachMark(targets: [
-      TargetFocus(
-        identify: '_settingsIconKey',
-        keyTarget: _settingsIconKey,
-        contents: [
-          TargetContent(
-            builder: (context, controller) {
-              return TutorialCardWidget(
-                  onNext: controller.next,
-                  onPrevious: controller.skip,
-                  nextText: 'Next',
-                  previousText: 'Skip',
-                  text:
-                      "From here you can change your region, format and more.");
-            },
-          ),
-        ],
-      ),
-      TargetFocus(
-        identify: '_resetIconKey',
-        keyTarget: _resetIconKey,
-        contents: [
-          TargetContent(
-            builder: (context, controller) {
-              return TutorialCardWidget(
-                  onNext: controller.next,
-                  onPrevious: controller.previous,
-                  nextText: 'Next',
-                  previousText: 'Previous',
-                  text: "Undo everything and start from scratch.");
-            },
-          ),
-        ],
-      ),
-      TargetFocus(
-        identify: '_cardsKey',
-        keyTarget: _cardsKey,
-        shape: ShapeLightFocus.RRect,
-        contents: [
-          TargetContent(
-            align: ContentAlign.top,
-            builder: (context, controller) {
-              return TutorialCardWidget(
-                  onNext: controller.next,
-                  onPrevious: controller.previous,
-                  nextText: 'Next',
-                  previousText: 'Previous',
-                  text:
-                      "Find opponent cards here and move them to opponent cards.");
-            },
-          ),
-        ],
-      ),
-      TargetFocus(
-        identify: '_searchCardIconKey',
-        keyTarget: _searchCardIconKey,
-        contents: [
-          TargetContent(
-            builder: (context, controller) {
-              return TutorialCardWidget(
-                  onNext: controller.next,
-                  onPrevious: controller.previous,
-                  nextText: 'Next',
-                  previousText: 'Previous',
-                  text: "Find a card by using its name.");
-            },
-          ),
-        ],
-      ),
-      TargetFocus(
-        identify: '_opponentCardsKey',
-        keyTarget: _opponentCardsKey,
-        shape: ShapeLightFocus.RRect,
-        contents: [
-          TargetContent(
-            align: ContentAlign.top,
-            builder: (context, controller) {
-              return TutorialCardWidget(
-                  onNext: controller.next,
-                  onPrevious: controller.previous,
-                  nextText: 'Next',
-                  previousText: 'Previous',
-                  text:
-                      "List of confirmed opponent cards that have been played or revealed.");
-            },
-          ),
-        ],
-      ),
-      TargetFocus(
-        identify: '_predictedCardsKEy',
-        keyTarget: _predictedCardsKey,
-        shape: ShapeLightFocus.RRect,
-        contents: [
-          TargetContent(
-            align: ContentAlign.top,
-            builder: (context, controller) {
-              return TutorialCardWidget(
-                  onNext: controller.skip,
-                  onPrevious: controller.previous,
-                  nextText: 'Finish',
-                  previousText: 'Previous',
-                  text:
-                      "List of predicted cards that the opponent might have, there is a separate percentage for each copy of the card.");
-            },
-          ),
-        ],
-      ),
-    ]);
+    _tutorialCoachMark = TutorialCoachMark(
+      focusAnimationDuration: const Duration(milliseconds: 400),
+      unFocusAnimationDuration: const Duration(milliseconds: 300),
+      targets: [
+        TargetFocus(
+          identify: '_settingsIconKey',
+          keyTarget: _settingsIconKey,
+          contents: [
+            TargetContent(
+              builder: (context, controller) {
+                return TutorialCardWidget(
+                    onNext: controller.next,
+                    onPrevious: controller.skip,
+                    nextText: 'Next',
+                    previousText: 'Skip',
+                    text:
+                        "From here you can change your region, format and more.");
+              },
+            ),
+          ],
+        ),
+        TargetFocus(
+          identify: '_resetIconKey',
+          keyTarget: _resetIconKey,
+          contents: [
+            TargetContent(
+              builder: (context, controller) {
+                return TutorialCardWidget(
+                    onNext: controller.next,
+                    onPrevious: controller.previous,
+                    nextText: 'Next',
+                    previousText: 'Previous',
+                    text: "Undo everything and start from scratch.");
+              },
+            ),
+          ],
+        ),
+        TargetFocus(
+          identify: '_cardsKey',
+          keyTarget: _cardsKey,
+          shape: ShapeLightFocus.RRect,
+          contents: [
+            TargetContent(
+              align: ContentAlign.top,
+              builder: (context, controller) {
+                return TutorialCardWidget(
+                    onNext: controller.next,
+                    onPrevious: controller.previous,
+                    nextText: 'Next',
+                    previousText: 'Previous',
+                    text:
+                        "Find opponent cards here and move them to opponent cards.");
+              },
+            ),
+          ],
+        ),
+        TargetFocus(
+          identify: '_searchCardIconKey',
+          keyTarget: _searchCardIconKey,
+          contents: [
+            TargetContent(
+              builder: (context, controller) {
+                return TutorialCardWidget(
+                    onNext: controller.next,
+                    onPrevious: controller.previous,
+                    nextText: 'Next',
+                    previousText: 'Previous',
+                    text: "Find a card by using its name.");
+              },
+            ),
+          ],
+        ),
+        TargetFocus(
+          identify: '_opponentCardsKey',
+          keyTarget: _opponentCardsKey,
+          shape: ShapeLightFocus.RRect,
+          contents: [
+            TargetContent(
+              align: ContentAlign.top,
+              builder: (context, controller) {
+                return TutorialCardWidget(
+                    onNext: controller.next,
+                    onPrevious: controller.previous,
+                    nextText: 'Next',
+                    previousText: 'Previous',
+                    text:
+                        "List of confirmed opponent cards that have been played or revealed.");
+              },
+            ),
+          ],
+        ),
+        TargetFocus(
+          identify: '_predictedCardsKEy',
+          keyTarget: _predictedCardsKey,
+          shape: ShapeLightFocus.RRect,
+          contents: [
+            TargetContent(
+              align: ContentAlign.top,
+              builder: (context, controller) {
+                return TutorialCardWidget(
+                    onNext: controller.skip,
+                    onPrevious: controller.previous,
+                    nextText: 'Finish',
+                    previousText: 'Previous',
+                    text:
+                        "List of predicted cards that the opponent might have, there is a separate percentage for each copy of the card.");
+              },
+            ),
+          ],
+        ),
+      ],
+    );
     if (context.mounted) {
       _tutorialCoachMark?.show(context: context);
     }
