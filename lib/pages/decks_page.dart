@@ -1,7 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lortools/auto_router.gr.dart';
 import 'package:lortools/bloc/decks_bloc.dart';
 import 'package:lortools/bloc/opponent_cards_bloc.dart';
 import 'package:lortools/bloc/predicted_cards_bloc.dart';
@@ -16,7 +15,9 @@ import 'package:lortools/pages/settings_page.dart';
 import 'package:lortools/widgets/card_prediction_widget.dart';
 import 'package:lortools/widgets/card_widget.dart';
 import 'package:lortools/widgets/deck_card_widget.dart';
+import 'package:lortools/widgets/tutorial_card_widget.dart';
 import 'package:multi_dropdown/multiselect_dropdown.dart';
+import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
 @RoutePage()
 class DecksPage extends StatefulWidget {
@@ -28,12 +29,20 @@ class DecksPage extends StatefulWidget {
 
 class _DecksPageState extends State<DecksPage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  final GlobalKey _resetIconKey = GlobalKey();
+  final GlobalKey _settingsIconKey = GlobalKey();
+  final GlobalKey _searchCardIconKey = GlobalKey();
+  final GlobalKey _cardsKey = GlobalKey();
+  final GlobalKey _opponentCardsKey = GlobalKey();
+  final GlobalKey _predictedCardsKEy = GlobalKey();
+
   final MultiSelectController<String> _championsController =
       MultiSelectController<String>();
   final MultiSelectController<String> _regionsController =
       MultiSelectController<String>();
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
+  TutorialCoachMark? _tutorialCoachMark;
 
   @override
   void initState() {
@@ -47,6 +56,8 @@ class _DecksPageState extends State<DecksPage> {
             .add(SearchCardsToggle(_searchController.text));
       }
     });
+
+    _showTutorial();
   }
 
   void initializeDecks() {
@@ -61,7 +72,10 @@ class _DecksPageState extends State<DecksPage> {
         title: const Text('Decks'),
         actions: [
           GestureDetector(
-            child: const Icon(Icons.restart_alt),
+            child: Icon(
+              key: _resetIconKey,
+              Icons.restart_alt,
+            ),
             onTap: () {
               context.read<CardsBloc>().add(CardsLoadFromAllSets());
               context.read<DecksBloc>().add(DecksInitialize());
@@ -73,12 +87,16 @@ class _DecksPageState extends State<DecksPage> {
             },
           ),
           GestureDetector(
-            child: const Icon(Icons.settings),
+            child: Icon(
+              key: _settingsIconKey,
+              Icons.settings,
+            ),
             onTap: () {
               _scaffoldKey.currentState?.openEndDrawer();
               context.read<SettingsBloc>().add(LoadSettingsEvent());
             },
           ),
+          const SizedBox(width: 14),
         ],
       ),
       endDrawer: const SettingsPage(),
@@ -105,8 +123,9 @@ class _DecksPageState extends State<DecksPage> {
     );
   }
 
-  Widget _buildCardLayout(String title, Widget content) {
+  Widget _buildCardLayout(String title, Widget content, Key key) {
     return Expanded(
+      key: key,
       child: Card(
         child: Column(
           children: [
@@ -121,6 +140,7 @@ class _DecksPageState extends State<DecksPage> {
   Widget _buildCardLayoutWithSearch(
       String title, Widget content, List<LorCard> cards) {
     return Expanded(
+      key: _cardsKey,
       child: Card(
         child: Column(
           children: [
@@ -158,7 +178,10 @@ class _DecksPageState extends State<DecksPage> {
                   builder: (context, state) {
                     if (state is SearchCardsInitial) {
                       return GestureDetector(
-                        child: const Icon(Icons.search),
+                        child: Icon(
+                          key: _searchCardIconKey,
+                          Icons.search,
+                        ),
                         onTap: () {
                           context
                               .read<SearchCardsBloc>()
@@ -223,23 +246,41 @@ class _DecksPageState extends State<DecksPage> {
           return BlocBuilder<OpponentCardsBloc, OpponentCardsState>(
             builder: (context, state) {
               if (state is OpponentCardsUpdated) {
-                return ListView.builder(
-                  itemCount: state.cards.length,
-                  itemBuilder: (context, index) {
-                    return LayoutBuilder(
-                      builder: (context, constraints) {
-                        return _buildDraggableCard(
-                            context, state.cards[index], constraints, true);
-                      },
-                    );
-                  },
-                );
+                if (state.cards.isEmpty) {
+                  return _buildEmptyOpponentCards();
+                } else {
+                  return ListView.builder(
+                    itemCount: state.cards.length,
+                    itemBuilder: (context, index) {
+                      return LayoutBuilder(
+                        builder: (context, constraints) {
+                          return _buildDraggableCard(
+                              context, state.cards[index], constraints, true);
+                        },
+                      );
+                    },
+                  );
+                }
               } else {
-                return Container();
+                return _buildEmptyOpponentCards();
               }
             },
           );
         },
+      ),
+      _opponentCardsKey,
+    );
+  }
+
+  Padding _buildEmptyOpponentCards() {
+    return const Padding(
+      padding: EdgeInsets.all(8.0),
+      child: Text(
+        'Drag and drop a card from the left lists of cards here.',
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontSize: 14,
+        ),
       ),
     );
   }
@@ -290,20 +331,51 @@ class _DecksPageState extends State<DecksPage> {
       BlocBuilder<PredictedCardsBloc, PredictedCardsState>(
         builder: (context, state) {
           if (state is PredictedCardsUpdated) {
-            return ListView.builder(
-              itemCount: state.cards.length,
-              itemBuilder: (context, index) {
-                return LayoutBuilder(
-                  builder: (context, constraints) {
-                    return CardPredictionWidget(lorCard: state.cards[index]);
-                  },
-                );
-              },
-            );
+            if (state.cards.isEmpty) {
+              return _buildEmptyPredictedCards();
+            } else {
+              return ListView.builder(
+                itemCount: state.cards.length,
+                itemBuilder: (context, index) {
+                  return LayoutBuilder(
+                    builder: (context, constraints) {
+                      return CardPredictionWidget(lorCard: state.cards[index]);
+                    },
+                  );
+                },
+              );
+            }
           } else {
-            return Container();
+            return _buildInitialPredictedCards();
           }
         },
+      ),
+      _predictedCardsKEy,
+    );
+  }
+
+  Padding _buildInitialPredictedCards() {
+    return const Padding(
+      padding: EdgeInsets.all(8.0),
+      child: Text(
+        'Add some cards to opponent cards and this list will be automatically updated.',
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontSize: 14,
+        ),
+      ),
+    );
+  }
+
+  Padding _buildEmptyPredictedCards() {
+    return const Padding(
+      padding: EdgeInsets.all(8.0),
+      child: Text(
+        'The selected cards are not included in any of the meta decks.',
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontSize: 14,
+        ),
       ),
     );
   }
@@ -323,7 +395,13 @@ class _DecksPageState extends State<DecksPage> {
   Padding _cardsTitle(String title) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
-      child: Text(title),
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 16,
+        ),
+      ),
     );
   }
 
@@ -473,5 +551,120 @@ class _DecksPageState extends State<DecksPage> {
 
   ValueItem<String> _regionToValueItem(String region) {
     return ValueItem(label: region, value: region);
+  }
+
+  Future<void> _showTutorial() async {
+    await Future.delayed(const Duration(seconds: 1));
+    _tutorialCoachMark = TutorialCoachMark(targets: [
+      TargetFocus(
+        identify: '_settingsIconKey',
+        keyTarget: _settingsIconKey,
+        contents: [
+          TargetContent(
+            builder: (context, controller) {
+              return TutorialCardWidget(
+                  onNext: controller.next,
+                  onPrevious: controller.skip,
+                  nextText: 'Next',
+                  previousText: 'Skip',
+                  text:
+                      "From here you can change your region, format and more.");
+            },
+          ),
+        ],
+      ),
+      TargetFocus(
+        identify: '_resetIconKey',
+        keyTarget: _resetIconKey,
+        contents: [
+          TargetContent(
+            builder: (context, controller) {
+              return TutorialCardWidget(
+                  onNext: controller.next,
+                  onPrevious: controller.previous,
+                  nextText: 'Next',
+                  previousText: 'Previous',
+                  text: "Undo everything and start from scratch.");
+            },
+          ),
+        ],
+      ),
+      TargetFocus(
+        identify: '_cardsKey',
+        keyTarget: _cardsKey,
+        shape: ShapeLightFocus.RRect,
+        contents: [
+          TargetContent(
+            align: ContentAlign.top,
+            builder: (context, controller) {
+              return TutorialCardWidget(
+                  onNext: controller.next,
+                  onPrevious: controller.previous,
+                  nextText: 'Next',
+                  previousText: 'Previous',
+                  text:
+                      "Find opponent cards here and move them to opponent cards.");
+            },
+          ),
+        ],
+      ),
+      TargetFocus(
+        identify: '_searchCardIconKey',
+        keyTarget: _searchCardIconKey,
+        contents: [
+          TargetContent(
+            builder: (context, controller) {
+              return TutorialCardWidget(
+                  onNext: controller.next,
+                  onPrevious: controller.previous,
+                  nextText: 'Next',
+                  previousText: 'Previous',
+                  text: "Find a card by using it's name.");
+            },
+          ),
+        ],
+      ),
+      TargetFocus(
+        identify: '_opponentCardsKey',
+        keyTarget: _opponentCardsKey,
+        shape: ShapeLightFocus.RRect,
+        contents: [
+          TargetContent(
+            align: ContentAlign.top,
+            builder: (context, controller) {
+              return TutorialCardWidget(
+                  onNext: controller.next,
+                  onPrevious: controller.previous,
+                  nextText: 'Next',
+                  previousText: 'Previous',
+                  text:
+                      "List of confirmed opponent cards that have been played or revealed.");
+            },
+          ),
+        ],
+      ),
+      TargetFocus(
+        identify: '_predictedCardsKEy',
+        keyTarget: _predictedCardsKEy,
+        shape: ShapeLightFocus.RRect,
+        contents: [
+          TargetContent(
+            align: ContentAlign.top,
+            builder: (context, controller) {
+              return TutorialCardWidget(
+                  onNext: controller.skip,
+                  onPrevious: controller.previous,
+                  nextText: 'Finish',
+                  previousText: 'Previous',
+                  text:
+                      "List of predicted cards that the opponent might have, there is a separate percentage for each copy of the card.");
+            },
+          ),
+        ],
+      ),
+    ]);
+    if (context.mounted) {
+      _tutorialCoachMark?.show(context: context);
+    }
   }
 }

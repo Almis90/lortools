@@ -48,6 +48,7 @@ dependencies:
   darq: ^2.0.0
   firebase_core: ^2.24.2
   motion_toast: ^2.8.0
+  tutorial_coach_mark: ^1.2.11
 
 dev_dependencies:
   flutter_test:
