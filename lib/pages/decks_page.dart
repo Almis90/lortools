@@ -7,6 +7,7 @@ import 'package:lortools/bloc/opponent_cards_bloc.dart';
 import 'package:lortools/bloc/predicted_cards_bloc.dart';
 import 'package:lortools/bloc/search_cards_bloc.dart';
 import 'package:lortools/bloc/cards_bloc.dart';
+import 'package:lortools/bloc/settings_bloc.dart';
 import 'package:lortools/helpers/card_helper.dart';
 import 'package:lortools/models/champion.dart';
 import 'package:lortools/models/deck.dart';
@@ -75,6 +76,7 @@ class _DecksPageState extends State<DecksPage> {
             child: const Icon(Icons.settings),
             onTap: () {
               _scaffoldKey.currentState?.openEndDrawer();
+              context.read<SettingsBloc>().add(LoadSettingsEvent());
             },
           ),
         ],

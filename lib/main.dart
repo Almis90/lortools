@@ -8,9 +8,11 @@ import 'package:lortools/bloc/opponent_cards_bloc.dart';
 import 'package:lortools/bloc/predicted_cards_bloc.dart';
 import 'package:lortools/bloc/search_cards_bloc.dart';
 import 'package:lortools/bloc/cards_bloc.dart';
+import 'package:lortools/bloc/settings_bloc.dart';
 import 'package:lortools/firebase_options.dart';
 import 'package:lortools/repositories/decks_repository.dart';
 import 'package:lortools/repositories/cards_repository.dart';
+import 'package:lortools/repositories/settings_repository.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,6 +36,9 @@ class MyApp extends StatelessWidget {
         ),
         RepositoryProvider<CardsRepository>(
           create: (context) => CardsRepository(),
+        ),
+        RepositoryProvider<SettingsRepository>(
+          create: (context) => SettingsRepository(),
         ),
       ],
       child: MultiBlocProvider(
@@ -65,6 +70,12 @@ class MyApp extends StatelessWidget {
           ),
           BlocProvider<SearchCardsBloc>(
             create: (context) => SearchCardsBloc(),
+          ),
+          BlocProvider<SettingsBloc>(
+            create: (context) => SettingsBloc(
+              settingsRepository:
+                  RepositoryProvider.of<SettingsRepository>(context),
+            ),
           ),
         ],
         child: MaterialApp.router(

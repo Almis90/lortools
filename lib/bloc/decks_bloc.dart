@@ -131,7 +131,7 @@ class DecksBloc extends Bloc<DecksEvent, DecksState> {
         playrate: double.parse(deckStats[3]),
         totalMatches: int.parse(deckStats[1]),
         deckCode: deckStats[0],
-        source: 'MasteringRuneterra');
+        source: 'Mastering Runeterra');
   }
 
   LorCard _cardCodeAndCountToCard(List<LorCard> allCards, CardCodeAndCount e) {
