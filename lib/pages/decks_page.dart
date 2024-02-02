@@ -98,11 +98,33 @@ class _DecksPageState extends State<DecksPage> {
                           ),
                         ),
                       ),
-                      Container(
-                        width: 150,
-                        color: Colors.black,
-                        child: Image.network(
-                            'https://masteringruneterra.com/wp-content/uploads/2022/04/MRLogo-Colored-768x307-1-300x120.png'),
+                      GestureDetector(
+                        child: Column(
+                          children: [
+                            Container(
+                              width: 150,
+                              color: Colors.black,
+                              child: Image.network(
+                                  'https://masteringruneterra.com/wp-content/uploads/2022/04/MRLogo-Colored-768x307-1-300x120.png'),
+                            ),
+                            const Text(
+                              'https://masteringruneterra.com',
+                              style: TextStyle(
+                                color: Colors.blue,
+                                decoration: TextDecoration.underline,
+                                decorationColor: Colors.blue,
+                              ),
+                            ),
+                          ],
+                        ),
+                        onTap: () async {
+                          final url =
+                              Uri.parse('https://masteringruneterra.com');
+
+                          if (await canLaunchUrl(url)) {
+                            await launchUrl(url);
+                          }
+                        },
                       ),
                       const Text('For providing the meta decks.')
                     ],
@@ -130,11 +152,10 @@ class _DecksPageState extends State<DecksPage> {
               FontAwesomeIcons.github,
             ),
             onTap: () async {
-              final discordUrl =
-                  Uri.parse('https://github.com/Almis90/lortools');
+              final url = Uri.parse('https://github.com/Almis90/lortools');
 
-              if (await canLaunchUrl(discordUrl)) {
-                await launchUrl(discordUrl);
+              if (await canLaunchUrl(url)) {
+                await launchUrl(url);
               }
             },
           ),
@@ -144,10 +165,10 @@ class _DecksPageState extends State<DecksPage> {
               Icons.discord,
             ),
             onTap: () async {
-              final discordUrl = Uri.parse('https://discord.gg/757eAnZx4d');
+              final url = Uri.parse('https://discord.gg/757eAnZx4d');
 
-              if (await canLaunchUrl(discordUrl)) {
-                await launchUrl(discordUrl);
+              if (await canLaunchUrl(url)) {
+                await launchUrl(url);
               }
             },
           ),
