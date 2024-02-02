@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:darq/darq.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:lortools/bloc/app_bloc.dart';
 import 'package:lortools/bloc/decks_bloc.dart';
 import 'package:lortools/bloc/opponent_cards_bloc.dart';
@@ -80,11 +81,33 @@ class _DecksPageState extends State<DecksPage> {
             listener: (context, state) {
               if (state is AppPackageInfoLoadedState) {
                 QuickAlert.show(
-                    context: context,
-                    type: QuickAlertType.success,
-                    customAsset: 'packages/quickalert/assets/success.gif',
-                    title: 'App Version',
-                    text: 'v${state.version} (${state.buildNumber})');
+                  context: context,
+                  type: QuickAlertType.info,
+                  title: 'App Version',
+                  text: 'v${state.version} (${state.buildNumber})',
+                  widget: Column(
+                    children: [
+                      const Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: Text(
+                          'Credits',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            decoration: TextDecoration.underline,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                      Container(
+                        width: 150,
+                        color: Colors.black,
+                        child: Image.network(
+                            'https://masteringruneterra.com/wp-content/uploads/2022/04/MRLogo-Colored-768x307-1-300x120.png'),
+                      ),
+                      const Text('For providing the meta decks.')
+                    ],
+                  ),
+                );
               }
             },
             buildWhen: (previous, current) {
@@ -99,6 +122,20 @@ class _DecksPageState extends State<DecksPage> {
                   context.read<AppBloc>().add(AppPackageInfoLoadEvent());
                 },
               );
+            },
+          ),
+          const SizedBox(width: 4),
+          GestureDetector(
+            child: const FaIcon(
+              FontAwesomeIcons.github,
+            ),
+            onTap: () async {
+              final discordUrl =
+                  Uri.parse('https://github.com/Almis90/lortools');
+
+              if (await canLaunchUrl(discordUrl)) {
+                await launchUrl(discordUrl);
+              }
             },
           ),
           const SizedBox(width: 4),

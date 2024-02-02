@@ -65,8 +65,8 @@ class CardsRepository {
   Future<bool> _fetchAndCacheSet(
       SharedPreferences prefs, String version) async {
     try {
-      _dio.options.headers['User-Agent'] =
-          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15';
+      // _dio.options.headers['User-Agent'] =
+      //     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15';
 
       var url = kIsWeb ? _corsUrl : _url;
       Response response = await _dio.get(url.replaceAll('{0}', version));

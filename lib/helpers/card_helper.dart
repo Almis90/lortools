@@ -6,7 +6,7 @@ class CardHelper {
   static String getImageUrlFromCodeAndSet(
       {required String code, required String set, bool? full}) {
     var img =
-        'http://dd.b.pvp.net/latest/${set.toLowerCase()}/en_us/img/cards/$code${(full ?? true ? '-full' : '')}.png';
+        'https://dd.b.pvp.net/latest/${set.toLowerCase()}/en_us/img/cards/$code${(full ?? true ? '-full' : '')}.png';
 
     return img;
   }
