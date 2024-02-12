@@ -8,6 +8,8 @@ import 'package:lortools/bloc/predicted_cards_bloc.dart';
 import 'package:lortools/bloc/search_cards_bloc.dart';
 import 'package:lortools/bloc/cards_bloc.dart';
 import 'package:lortools/helpers/card_helper.dart';
+import 'package:lortools/helpers/decks_tutorial_helper.dart';
+import 'package:lortools/keys.dart';
 import 'package:lortools/models/champion.dart';
 import 'package:lortools/models/deck.dart';
 import 'package:lortools/models/lor_card.dart';
@@ -16,9 +18,7 @@ import 'package:lortools/widgets/card_prediction_widget.dart';
 import 'package:lortools/widgets/card_widget.dart';
 import 'package:lortools/widgets/deck_app_bar.dart';
 import 'package:lortools/widgets/deck_card_widget.dart';
-import 'package:lortools/widgets/tutorial_card_widget.dart';
 import 'package:multi_dropdown/multiselect_dropdown.dart';
-import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
 @RoutePage()
 class DecksPage extends StatefulWidget {
@@ -29,31 +29,25 @@ class DecksPage extends StatefulWidget {
 }
 
 class _DecksPageState extends State<DecksPage> {
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  final GlobalKey _resetIconKey = GlobalKey();
-  final GlobalKey _settingsIconKey = GlobalKey();
-  final GlobalKey _searchCardIconKey = GlobalKey();
-  final GlobalKey _cardsKey = GlobalKey();
-  final GlobalKey _opponentCardsKey = GlobalKey();
-  final GlobalKey _predictedCardsKey = GlobalKey();
-
   final MultiSelectController<String> _championsController =
       MultiSelectController<String>();
   final MultiSelectController<String> _regionsController =
       MultiSelectController<String>();
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
-  TutorialCoachMark? _tutorialCoachMark;
+  late DecksTutorialHelper _decksTutorialHelper;
 
   @override
   void initState() {
     super.initState();
 
+    _decksTutorialHelper = DecksTutorialHelper(context: context);
+
     _loadAllCardsFromAllSets();
 
     _addFocusListenerToSearchCardText();
 
-    _showTutorial();
+    _decksTutorialHelper.showTutorial();
   }
 
   void _addFocusListenerToSearchCardText() {
@@ -77,7 +71,7 @@ class _DecksPageState extends State<DecksPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      key: _scaffoldKey,
+      key: Keys.scaffoldKey,
       appBar: const DeckAppBar(),
       endDrawer: const SettingsPage(),
       body: Padding(
@@ -106,7 +100,7 @@ class _DecksPageState extends State<DecksPage> {
   Widget _buildCardLayoutWithSearch(
       String title, Widget content, List<LorCard> cards) {
     return Expanded(
-      key: _cardsKey,
+      key: Keys.cardsKey,
       child: Card(
         child: Column(
           children: [
@@ -135,7 +129,7 @@ class _DecksPageState extends State<DecksPage> {
         if (state is SearchCardsInitial) {
           return GestureDetector(
             child: Icon(
-              key: _searchCardIconKey,
+              key: Keys.searchCardIconKey,
               Icons.search,
             ),
             onTap: () {
@@ -204,7 +198,7 @@ class _DecksPageState extends State<DecksPage> {
 
   Widget _buildOpponentCardsCard() {
     return Expanded(
-      key: _opponentCardsKey,
+      key: Keys.opponentCardsKey,
       child: Card(
         child: Column(
           children: [
@@ -324,7 +318,7 @@ class _DecksPageState extends State<DecksPage> {
 
   Widget _buildPredictedCardsCard() {
     return Expanded(
-      key: _predictedCardsKey,
+      key: Keys.predictedCardsKey,
       child: Card(
         child: Column(
           children: [
@@ -575,148 +569,5 @@ class _DecksPageState extends State<DecksPage> {
 
   ValueItem<String> _regionToValueItem(String region) {
     return ValueItem(label: region, value: region);
-  }
-
-  Future<void> _showTutorial() async {
-    await Future.delayed(const Duration(seconds: 1));
-    _tutorialCoachMark = TutorialCoachMark(
-      focusAnimationDuration: const Duration(milliseconds: 400),
-      unFocusAnimationDuration: const Duration(milliseconds: 300),
-      targets: [
-        _settingsTargetFocus(),
-        _resetIconTargetFocus(),
-        _cardsTargetFocus(),
-        _searchCardTargetFocus(),
-        _opponentCardsTargetFocus(),
-        _predictedCardsTargetFocus(),
-      ],
-    );
-
-    if (context.mounted) {
-      _tutorialCoachMark?.show(context: context);
-    }
-  }
-
-  TargetFocus _settingsTargetFocus() {
-    return TargetFocus(
-      identify: '_settingsIconKey',
-      keyTarget: _settingsIconKey,
-      contents: [
-        TargetContent(
-          builder: (context, controller) {
-            return TutorialCardWidget(
-                onNext: controller.next,
-                onPrevious: controller.skip,
-                nextText: 'Next',
-                previousText: 'Skip',
-                text: "From here you can change your region, format and more.");
-          },
-        ),
-      ],
-    );
-  }
-
-  TargetFocus _resetIconTargetFocus() {
-    return TargetFocus(
-      identify: '_resetIconKey',
-      keyTarget: _resetIconKey,
-      contents: [
-        TargetContent(
-          builder: (context, controller) {
-            return TutorialCardWidget(
-                onNext: controller.next,
-                onPrevious: controller.previous,
-                nextText: 'Next',
-                previousText: 'Previous',
-                text: "Undo everything and start from scratch.");
-          },
-        ),
-      ],
-    );
-  }
-
-  TargetFocus _cardsTargetFocus() {
-    return TargetFocus(
-      identify: '_cardsKey',
-      keyTarget: _cardsKey,
-      shape: ShapeLightFocus.RRect,
-      contents: [
-        TargetContent(
-          align: ContentAlign.top,
-          builder: (context, controller) {
-            return TutorialCardWidget(
-                onNext: controller.next,
-                onPrevious: controller.previous,
-                nextText: 'Next',
-                previousText: 'Previous',
-                text:
-                    "Find opponent cards here and move them to opponent cards.");
-          },
-        ),
-      ],
-    );
-  }
-
-  TargetFocus _searchCardTargetFocus() {
-    return TargetFocus(
-      identify: '_searchCardIconKey',
-      keyTarget: _searchCardIconKey,
-      contents: [
-        TargetContent(
-          builder: (context, controller) {
-            return TutorialCardWidget(
-                onNext: controller.next,
-                onPrevious: controller.previous,
-                nextText: 'Next',
-                previousText: 'Previous',
-                text: "Find a card by using its name.");
-          },
-        ),
-      ],
-    );
-  }
-
-  TargetFocus _opponentCardsTargetFocus() {
-    return TargetFocus(
-      identify: '_opponentCardsKey',
-      keyTarget: _opponentCardsKey,
-      shape: ShapeLightFocus.RRect,
-      contents: [
-        TargetContent(
-          align: ContentAlign.top,
-          builder: (context, controller) {
-            return TutorialCardWidget(
-                onNext: controller.next,
-                onPrevious: controller.previous,
-                nextText: 'Next',
-                previousText: 'Previous',
-                text:
-                    "List of confirmed opponent cards that have been played or revealed.");
-          },
-        ),
-      ],
-    );
-  }
-
-  TargetFocus _predictedCardsTargetFocus() {
-    return TargetFocus(
-      identify: '_predictedCardsKey',
-      keyTarget: _predictedCardsKey,
-      shape: ShapeLightFocus.RRect,
-      contents: [
-        TargetContent(
-          align: ContentAlign.top,
-          builder: (context, controller) {
-            return TutorialCardWidget(
-                onNext: controller.skip,
-                onPrevious: controller.previous,
-                nextText: 'Finish',
-                previousText: 'Previous',
-                text:
-                    "List of predicted cards that the opponent might have, there is a separate percentage for each copy of the card.");
-          },
-        ),
-      ],
-    );
   }
 }
