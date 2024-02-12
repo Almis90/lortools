@@ -252,7 +252,8 @@ class _DeckAppBarState extends State<DeckAppBar> {
         fit: fit,
         width: width,
         height: height,
-        loadingBuilder: (context, child, loadingProgress) => placeholder,
+        loadingBuilder: (context, child, loadingProgress) =>
+            loadingProgress == null ? child : placeholder,
         errorBuilder: (context, error, stackTrace) => errorWidget,
       );
     }

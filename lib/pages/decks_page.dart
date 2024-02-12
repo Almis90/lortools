@@ -657,7 +657,8 @@ class _DecksPageState extends State<DecksPage> {
           set: card.deckSet,
           full: false,
         ),
-        loadingBuilder: (context, child, loadingProgress) => placeholder,
+        loadingBuilder: (context, child, loadingProgress) =>
+            loadingProgress == null ? child : placeholder,
         errorBuilder: (context, error, stackTrace) => errorWidget,
       );
     }

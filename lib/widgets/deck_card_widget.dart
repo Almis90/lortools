@@ -116,7 +116,8 @@ class _DeckCardWidgetState extends State<DeckCardWidget> {
         fit: fit,
         width: size,
         height: size,
-        loadingBuilder: (context, child, loadingProgress) => placeholder,
+        loadingBuilder: (context, child, loadingProgress) =>
+            loadingProgress == null ? child : placeholder,
         errorBuilder: (context, error, stackTrace) => errorWidget,
       );
     }
