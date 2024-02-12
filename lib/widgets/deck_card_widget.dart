@@ -103,43 +103,31 @@ class _DeckCardWidgetState extends State<DeckCardWidget> {
   }
 
   Widget _buildDeckCardImage(String imageUrl, BoxConstraints constraints) {
-    var sizeDivider =
+    final sizeDivider =
         widget.deck.champions.length > 3 ? widget.deck.champions.length : 3;
-    var size = constraints.maxWidth / sizeDivider - 4;
-    var fit = BoxFit.cover;
+    final size = constraints.maxWidth / sizeDivider - 4;
+    const fit = BoxFit.cover;
+    const Widget placeholder = CircularProgressIndicator();
+    const Widget errorWidget = Icon(Icons.error);
 
     if (kIsWeb) {
-      return _buildImage(imageUrl, fit, size);
+      return Image.network(
+        imageUrl,
+        fit: fit,
+        width: size,
+        height: size,
+        loadingBuilder: (context, child, loadingProgress) => placeholder,
+        errorBuilder: (context, error, stackTrace) => errorWidget,
+      );
     }
 
-    return _buildCachedImage(imageUrl, fit, size);
-  }
-
-  CachedNetworkImage _buildCachedImage(
-    String imageUrl,
-    BoxFit fit,
-    double size,
-  ) {
     return CachedNetworkImage(
       imageUrl: imageUrl,
       fit: fit,
       width: size,
       height: size,
-      placeholder: (context, url) => const CircularProgressIndicator(),
-      errorWidget: (context, url, error) => const Icon(Icons.error),
-    );
-  }
-
-  Image _buildImage(
-    String imageUrl,
-    BoxFit fit,
-    double size,
-  ) {
-    return Image.network(
-      imageUrl,
-      fit: fit,
-      width: size,
-      height: size,
+      placeholder: (context, url) => placeholder,
+      errorWidget: (context, error, stackTrace) => errorWidget,
     );
   }
 

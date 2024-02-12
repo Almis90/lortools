@@ -8,6 +8,7 @@ import 'package:lortools/bloc/cards_bloc.dart';
 import 'package:lortools/bloc/decks_bloc.dart';
 import 'package:lortools/bloc/opponent_cards_bloc.dart';
 import 'package:lortools/bloc/predicted_cards_bloc.dart';
+import 'package:lortools/bloc/preview_card_bloc.dart';
 import 'package:lortools/bloc/settings_bloc.dart';
 import 'package:lortools/keys.dart';
 import 'package:quickalert/models/quickalert_type.dart';
@@ -72,6 +73,7 @@ class _DeckAppBarState extends State<DeckAppBar> {
         context.read<OpponentCardsBloc>().add(OpponentCardsClear());
         context.read<PredictedCardsBloc>().add(PredictedCardsClear());
         context.read<DecksBloc>().add(DecksInitialize());
+        context.read<PreviewCardBloc>().add(PreviewCardClearEvent());
       },
     );
   }
@@ -214,11 +216,13 @@ class _DeckAppBarState extends State<DeckAppBar> {
   }
 
   Widget _buildMasteringRuneterraLogo() {
-    var imageUrl =
+    const imageUrl =
         'https://masteringruneterra.com/wp-content/uploads/2022/04/MRLogo-Colored-768x307-1-300x120.png';
-    var fit = BoxFit.cover;
-    var width = double.infinity;
-    var height = 50.0;
+    const fit = BoxFit.cover;
+    const width = double.infinity;
+    const height = 50.0;
+    const Widget placeholder = CircularProgressIndicator();
+    const Widget errorWidget = Icon(Icons.error);
 
     if (kIsWeb) {
       return Image.network(
@@ -226,6 +230,8 @@ class _DeckAppBarState extends State<DeckAppBar> {
         fit: fit,
         width: width,
         height: height,
+        loadingBuilder: (context, child, loadingProgress) => placeholder,
+        errorBuilder: (context, error, stackTrace) => errorWidget,
       );
     }
     return CachedNetworkImage(
@@ -233,8 +239,8 @@ class _DeckAppBarState extends State<DeckAppBar> {
       fit: fit,
       width: width,
       height: height,
-      placeholder: (context, url) => const CircularProgressIndicator(),
-      errorWidget: (context, url, error) => const Icon(Icons.error),
+      placeholder: (context, url) => placeholder,
+      errorWidget: (context, url, error) => errorWidget,
     );
   }
 }

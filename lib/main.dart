@@ -7,6 +7,7 @@ import 'package:lortools/bloc/assets_bloc.dart';
 import 'package:lortools/bloc/decks_bloc.dart';
 import 'package:lortools/bloc/opponent_cards_bloc.dart';
 import 'package:lortools/bloc/predicted_cards_bloc.dart';
+import 'package:lortools/bloc/preview_card_bloc.dart';
 import 'package:lortools/bloc/search_cards_bloc.dart';
 import 'package:lortools/bloc/cards_bloc.dart';
 import 'package:lortools/bloc/settings_bloc.dart';
@@ -72,6 +73,9 @@ class MyApp extends StatelessWidget {
           ),
           BlocProvider<SearchCardsBloc>(
             create: (context) => SearchCardsBloc(),
+          ),
+          BlocProvider<PreviewCardBloc>(
+            create: (context) => PreviewCardBloc(),
           ),
           BlocProvider<SettingsBloc>(
             create: (context) => SettingsBloc(

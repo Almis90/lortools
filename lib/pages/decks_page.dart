@@ -1,10 +1,13 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:darq/darq.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lortools/bloc/decks_bloc.dart';
 import 'package:lortools/bloc/opponent_cards_bloc.dart';
 import 'package:lortools/bloc/predicted_cards_bloc.dart';
+import 'package:lortools/bloc/preview_card_bloc.dart';
 import 'package:lortools/bloc/search_cards_bloc.dart';
 import 'package:lortools/bloc/cards_bloc.dart';
 import 'package:lortools/helpers/card_helper.dart';
@@ -87,7 +90,7 @@ class _DecksPageState extends State<DecksPage> {
                   _buildCards(),
                   _buildOpponentCardsCard(),
                   _buildPredictedCardsCard(),
-                  const Spacer(),
+                  _buildCardPreview(),
                 ],
               ),
             ),
@@ -192,7 +195,11 @@ class _DecksPageState extends State<DecksPage> {
           child: CardWidget(lorCard: card, showCount: showCount),
         ),
       ),
-      child: CardWidget(lorCard: card, showCount: showCount),
+      child: GestureDetector(
+        onLongPress: () => _previewCard(card),
+        onSecondaryTap: () => _previewCard(card),
+        child: CardWidget(lorCard: card, showCount: showCount),
+      ),
     );
   }
 
@@ -347,16 +354,24 @@ class _DecksPageState extends State<DecksPage> {
     );
   }
 
-  ListView _buildPredictedCards(PredictedCardsUpdated state) {
-    return ListView.builder(
-      itemCount: state.cards.length,
-      itemBuilder: (context, index) {
-        return LayoutBuilder(
-          builder: (context, constraints) {
-            return CardPredictionWidget(lorCard: state.cards[index]);
-          },
-        );
-      },
+  Widget _buildPredictedCards(PredictedCardsUpdated state) {
+    return Expanded(
+      child: ListView.builder(
+        itemCount: state.cards.length,
+        itemBuilder: (context, index) {
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              var predictedCard = state.cards[index];
+
+              return GestureDetector(
+                onLongPress: () => _previewCard(predictedCard.card),
+                onDoubleTap: () => _previewCard(predictedCard.card),
+                child: CardPredictionWidget(lorCard: predictedCard),
+              );
+            },
+          );
+        },
+      ),
     );
   }
 
@@ -569,5 +584,80 @@ class _DecksPageState extends State<DecksPage> {
 
   ValueItem<String> _regionToValueItem(String region) {
     return ValueItem(label: region, value: region);
+  }
+
+  Widget _buildCardPreview() {
+    return Expanded(
+      child: Card(
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              _cardsTitle('Card Preview'),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(0, 0, 0, 10),
+                child: BlocBuilder<PreviewCardBloc, PreviewCardState>(
+                  builder: (context, state) {
+                    if (state is PreviewCardSelectedState) {
+                      return Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                        child: _buildCardPreviewImage(
+                          card: state.card,
+                        ),
+                      );
+                    } else {
+                      return _buildEmptyPreviewCard();
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Padding _buildEmptyPreviewCard() {
+    return const Padding(
+      padding: EdgeInsets.all(8.0),
+      child: Text(
+        'To preview a card, long press or right-click on a card.',
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontSize: 14,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCardPreviewImage({required LorCard card}) {
+    const Widget placeholder = CircularProgressIndicator();
+    const Widget errorWidget = Icon(Icons.error);
+
+    if (kIsWeb) {
+      return Image.network(
+        CardHelper.getImageUrlFromCodeAndSet(
+          code: card.cardCode,
+          set: card.deckSet,
+          full: false,
+        ),
+        loadingBuilder: (context, child, loadingProgress) => placeholder,
+        errorBuilder: (context, error, stackTrace) => errorWidget,
+      );
+    }
+
+    return CachedNetworkImage(
+      placeholder: (context, url) => placeholder,
+      errorWidget: (context, url, error) => errorWidget,
+      imageUrl: CardHelper.getImageUrlFromCodeAndSet(
+        code: card.cardCode,
+        set: card.deckSet,
+        full: false,
+      ),
+    );
+  }
+
+  _previewCard(LorCard card) {
+    context.read<PreviewCardBloc>().add(PreviewCardSelectEvent(card: card));
   }
 }

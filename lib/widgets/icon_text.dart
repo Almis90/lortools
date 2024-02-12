@@ -22,21 +22,29 @@ class IconText extends StatelessWidget {
   }
 
   Widget _buildImage() {
+    const BoxFit fit = BoxFit.cover;
+    const double width = 16.0;
+    const double height = 16.0;
+    const Widget placeholder = CircularProgressIndicator();
+    const Widget errorWidget = Icon(Icons.error);
+
     if (kIsWeb) {
       return Image.network(
         imageUrl,
-        fit: BoxFit.cover,
-        width: double.infinity,
-        height: 50,
+        fit: fit,
+        width: width,
+        height: height,
+        loadingBuilder: (context, child, loadingProgress) => placeholder,
+        errorBuilder: (context, error, stackTrace) => errorWidget,
       );
     }
     return CachedNetworkImage(
       imageUrl: imageUrl,
-      fit: BoxFit.cover,
-      width: 16,
-      height: 16,
-      placeholder: (context, url) => const CircularProgressIndicator(),
-      errorWidget: (context, url, error) => const Icon(Icons.error),
+      fit: fit,
+      width: width,
+      height: height,
+      placeholder: (context, url) => placeholder,
+      errorWidget: (context, url, error) => errorWidget,
     );
   }
 }

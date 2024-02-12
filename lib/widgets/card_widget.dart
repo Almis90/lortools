@@ -94,27 +94,35 @@ class _CardWidgetState extends State<CardWidget> {
   }
 
   Widget _cardImage() {
-    var imageUrl = CardHelper.getImageUrlFromCodeAndSet(
+    final imageUrl = CardHelper.getImageUrlFromCodeAndSet(
         code: widget.lorCard.cardCode, set: widget.lorCard.deckSet);
+    const fit = BoxFit.cover;
+    const width = double.infinity;
+    const height = 50.0;
+    final Widget placeholder = Container(
+      width: double.infinity,
+      height: 50,
+      color: Colors.black,
+    );
+    const Widget errorWidget = Icon(Icons.error);
+
     if (kIsWeb) {
       return Image.network(
         imageUrl,
-        fit: BoxFit.cover,
-        width: double.infinity,
-        height: 50,
+        fit: fit,
+        width: width,
+        height: height,
+        loadingBuilder: (context, child, loadingProgress) => placeholder,
+        errorBuilder: (context, error, stackTrace) => errorWidget,
       );
     }
     return CachedNetworkImage(
       imageUrl: imageUrl,
-      fit: BoxFit.cover,
-      width: double.infinity,
-      height: 50,
-      placeholder: (context, url) => Container(
-        width: double.infinity,
-        height: 50,
-        color: Colors.black,
-      ),
-      errorWidget: (context, url, error) => const Icon(Icons.error),
+      fit: fit,
+      width: width,
+      height: height,
+      placeholder: (context, url) => placeholder,
+      errorWidget: (context, url, error) => errorWidget,
     );
   }
 }
