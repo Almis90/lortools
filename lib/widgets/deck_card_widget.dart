@@ -6,6 +6,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lortools/bloc/decks_bloc.dart';
 import 'package:lortools/bloc/predicted_cards_bloc.dart';
 import 'package:lortools/models/deck.dart';
+import 'package:quickalert/models/quickalert_type.dart';
+import 'package:quickalert/widgets/quickalert_dialog.dart';
 
 class DeckCardWidget extends StatefulWidget {
   final Deck deck;
@@ -24,6 +26,7 @@ class _DeckCardWidgetState extends State<DeckCardWidget> {
     return GestureDetector(
       onTap: _loadDeckToPredicted,
       onLongPress: _copyDeckCodeToClipboard,
+      onSecondaryTap: _copyDeckCodeToClipboard,
       child: _buildDeckCard(context),
     );
   }
@@ -72,10 +75,23 @@ class _DeckCardWidgetState extends State<DeckCardWidget> {
 
   Widget _buildDeckCards(BuildContext context) {
     if (widget.deck.champions.isEmpty) {
-      return Container();
+      return _buildEmptyChampions();
     }
 
     return _buildDeckWrap();
+  }
+
+  Padding _buildEmptyChampions() {
+    return const Padding(
+      padding: EdgeInsets.all(8.0),
+      child: Text(
+        'No champions',
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontSize: 14,
+        ),
+      ),
+    );
   }
 
   LayoutBuilder _buildDeckWrap() {
@@ -134,6 +150,15 @@ class _DeckCardWidgetState extends State<DeckCardWidget> {
 
   Future<void> _copyDeckCodeToClipboard() async {
     await Clipboard.setData(ClipboardData(text: widget.deck.deckCode));
+
+    if (context.mounted) {
+      QuickAlert.show(
+        context: context,
+        type: QuickAlertType.success,
+        title: 'Copied to clipboard',
+        text: 'Your deck has been successfully copied to clipboard.',
+      );
+    }
   }
 
   void _loadDeckToPredicted() {

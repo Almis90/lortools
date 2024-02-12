@@ -64,7 +64,7 @@ class DecksBloc extends Bloc<DecksEvent, DecksState> {
       allDecks.add(deck);
     });
     filteredDecks = allDecks.toList();
-    filteredDecks.sort(_sortByWinrate);
+    filteredDecks.sort(_sortByMatches);
 
     emit(DecksLoaded(
       allDecks: allDecks,
@@ -88,7 +88,7 @@ class DecksBloc extends Bloc<DecksEvent, DecksState> {
 
     filteredDecks = _filterDecksByRegions();
     filteredDecks = _filterDecksByChampions();
-    filteredDecks.sort(_sortByWinrate);
+    filteredDecks.sort(_sortByMatches);
 
     emit(DecksLoaded(
       allDecks: allDecks,
@@ -104,7 +104,7 @@ class DecksBloc extends Bloc<DecksEvent, DecksState> {
 
     filteredDecks = _filterDecksByRegions();
     filteredDecks = _filterDecksByChampions();
-    filteredDecks.sort(_sortByWinrate);
+    filteredDecks.sort(_sortByMatches);
 
     emit(DecksLoaded(
       allDecks: allDecks,
@@ -197,6 +197,10 @@ class DecksBloc extends Bloc<DecksEvent, DecksState> {
 
   int _sortByWinrate(Deck a, Deck b) {
     return b.winrate.compareTo(a.winrate);
+  }
+
+  int _sortByMatches(Deck a, Deck b) {
+    return b.totalMatches.compareTo(a.totalMatches);
   }
 
   Future<List<DeckStatsServer>?> _getDeckStatsServers(DeckStats? stats) async {

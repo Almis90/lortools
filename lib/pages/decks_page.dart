@@ -515,6 +515,7 @@ class _DecksPageState extends State<DecksPage> {
 
   Widget _buildDecks() {
     return SizedBox(
+      key: Keys.decksKey,
       height: 120,
       child: BlocBuilder<DecksBloc, DecksState>(
         builder: (context, state) {
@@ -604,6 +605,7 @@ class _DecksPageState extends State<DecksPage> {
 
   Widget _buildCardPreview() {
     return Expanded(
+      key: Keys.previewCardsKey,
       child: Card(
         child: SingleChildScrollView(
           child: Column(

@@ -28,10 +28,12 @@ class DecksTutorialHelper {
       targets: [
         _settingsTargetFocus(),
         _resetIconTargetFocus(),
+        _decksTargetFocus(),
         _cardsTargetFocus(),
         _searchCardTargetFocus(),
         _opponentCardsTargetFocus(),
         _predictedCardsTargetFocus(),
+        _previewCardsTargetFocus(),
       ],
     );
 
@@ -92,6 +94,37 @@ class DecksTutorialHelper {
                 nextText: 'Next',
                 previousText: 'Previous',
                 text: "Undo everything and start from scratch.");
+          },
+        ),
+      ],
+    );
+  }
+
+  TargetFocus _decksTargetFocus() {
+    return TargetFocus(
+      identify: 'decksKey',
+      keyTarget: Keys.decksKey,
+      shape: ShapeLightFocus.RRect,
+      contents: [
+        TargetContent(
+          builder: (context, controller) {
+            return TutorialCardWidget(
+                onNext: () {
+                  controller.next();
+                  context
+                      .read<DecksTutorialBloc>()
+                      .add(DecksTutorialNextEvent());
+                },
+                onPrevious: () {
+                  controller.previous();
+                  context
+                      .read<DecksTutorialBloc>()
+                      .add(DecksTutorialPreviousEvent());
+                },
+                nextText: 'Next',
+                previousText: 'Previous',
+                text:
+                    "Possible decks based on filtering options. The trophy icon is winrate, the play icon is playrate and the people icon is total matches. Long press/click or right click to copy the deck to clipboard.");
           },
         ),
       ],
@@ -202,6 +235,38 @@ class DecksTutorialHelper {
           builder: (context, controller) {
             return TutorialCardWidget(
                 onNext: () {
+                  controller.next();
+                  context
+                      .read<DecksTutorialBloc>()
+                      .add(DecksTutorialNextEvent());
+                },
+                onPrevious: () {
+                  controller.previous();
+                  context
+                      .read<DecksTutorialBloc>()
+                      .add(DecksTutorialPreviousEvent());
+                },
+                nextText: 'Next',
+                previousText: 'Previous',
+                text:
+                    "List of predicted cards that the opponent might have, there is a separate percentage for each copy of the card.");
+          },
+        ),
+      ],
+    );
+  }
+
+  TargetFocus _previewCardsTargetFocus() {
+    return TargetFocus(
+      identify: 'previewCardsTargetFocus',
+      keyTarget: Keys.previewCardsKey,
+      shape: ShapeLightFocus.RRect,
+      contents: [
+        TargetContent(
+          align: ContentAlign.top,
+          builder: (context, controller) {
+            return TutorialCardWidget(
+                onNext: () {
                   controller.skip();
                   context
                       .read<DecksTutorialBloc>()
@@ -216,7 +281,7 @@ class DecksTutorialHelper {
                 nextText: 'Finish',
                 previousText: 'Previous',
                 text:
-                    "List of predicted cards that the opponent might have, there is a separate percentage for each copy of the card.");
+                    "Long press or right-click on a card and it will appear here.");
           },
         ),
       ],
