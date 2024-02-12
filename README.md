@@ -1,4 +1,5 @@
 # LorTools
+![LorTools](docs/images/lor.png)
 
 ## Overview
 
