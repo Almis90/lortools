@@ -5,6 +5,7 @@ import 'package:lortools/auto_router.dart';
 import 'package:lortools/bloc/app_bloc.dart';
 import 'package:lortools/bloc/assets_bloc.dart';
 import 'package:lortools/bloc/decks_bloc.dart';
+import 'package:lortools/bloc/decks_tutorial_bloc.dart';
 import 'package:lortools/bloc/opponent_cards_bloc.dart';
 import 'package:lortools/bloc/predicted_cards_bloc.dart';
 import 'package:lortools/bloc/preview_card_bloc.dart';
@@ -14,6 +15,7 @@ import 'package:lortools/bloc/settings_bloc.dart';
 import 'package:lortools/firebase_options.dart';
 import 'package:lortools/repositories/decks_repository.dart';
 import 'package:lortools/repositories/cards_repository.dart';
+import 'package:lortools/repositories/decks_tutorial_repository.dart';
 import 'package:lortools/repositories/settings_repository.dart';
 
 Future<void> main() async {
@@ -41,6 +43,9 @@ class MyApp extends StatelessWidget {
         ),
         RepositoryProvider<SettingsRepository>(
           create: (context) => SettingsRepository(),
+        ),
+        RepositoryProvider<DecksTutorialRepository>(
+          create: (context) => DecksTutorialRepository(),
         ),
       ],
       child: MultiBlocProvider(
@@ -85,6 +90,11 @@ class MyApp extends StatelessWidget {
           ),
           BlocProvider<AppBloc>(
             create: (context) => AppBloc(),
+          ),
+          BlocProvider<DecksTutorialBloc>(
+            create: (context) => DecksTutorialBloc(
+                decksTutorialRepository:
+                    RepositoryProvider.of<DecksTutorialRepository>(context)),
           ),
         ],
         child: MaterialApp.router(

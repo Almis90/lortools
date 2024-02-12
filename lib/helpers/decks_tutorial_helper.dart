@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lortools/bloc/decks_tutorial_bloc.dart';
 import 'package:lortools/keys.dart';
+import 'package:lortools/repositories/decks_tutorial_repository.dart';
 import 'package:lortools/widgets/tutorial_card_widget.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
@@ -10,10 +13,18 @@ class DecksTutorialHelper {
   DecksTutorialHelper({required this.context});
 
   Future<void> showTutorial() async {
+    final step = await context.read<DecksTutorialRepository>().getStep();
+
     await Future.delayed(const Duration(seconds: 1));
     _tutorialCoachMark = TutorialCoachMark(
       focusAnimationDuration: const Duration(milliseconds: 400),
       unFocusAnimationDuration: const Duration(milliseconds: 300),
+      onSkip: () {
+        context.read<DecksTutorialBloc>().add(DecksTutorialSkipEvent());
+
+        return true;
+      },
+      initialFocus: step,
       targets: [
         _settingsTargetFocus(),
         _resetIconTargetFocus(),
@@ -37,8 +48,18 @@ class DecksTutorialHelper {
         TargetContent(
           builder: (context, controller) {
             return TutorialCardWidget(
-                onNext: controller.next,
-                onPrevious: controller.skip,
+                onNext: () {
+                  controller.next();
+                  context
+                      .read<DecksTutorialBloc>()
+                      .add(DecksTutorialNextEvent());
+                },
+                onPrevious: () {
+                  controller.skip();
+                  context
+                      .read<DecksTutorialBloc>()
+                      .add(DecksTutorialSkipEvent());
+                },
                 nextText: 'Next',
                 previousText: 'Skip',
                 text: "From here you can change your region, format and more.");
@@ -56,8 +77,18 @@ class DecksTutorialHelper {
         TargetContent(
           builder: (context, controller) {
             return TutorialCardWidget(
-                onNext: controller.next,
-                onPrevious: controller.previous,
+                onNext: () {
+                  controller.next();
+                  context
+                      .read<DecksTutorialBloc>()
+                      .add(DecksTutorialNextEvent());
+                },
+                onPrevious: () {
+                  controller.previous();
+                  context
+                      .read<DecksTutorialBloc>()
+                      .add(DecksTutorialPreviousEvent());
+                },
                 nextText: 'Next',
                 previousText: 'Previous',
                 text: "Undo everything and start from scratch.");
@@ -77,8 +108,18 @@ class DecksTutorialHelper {
           align: ContentAlign.top,
           builder: (context, controller) {
             return TutorialCardWidget(
-                onNext: controller.next,
-                onPrevious: controller.previous,
+                onNext: () {
+                  controller.next();
+                  context
+                      .read<DecksTutorialBloc>()
+                      .add(DecksTutorialNextEvent());
+                },
+                onPrevious: () {
+                  controller.previous();
+                  context
+                      .read<DecksTutorialBloc>()
+                      .add(DecksTutorialPreviousEvent());
+                },
                 nextText: 'Next',
                 previousText: 'Previous',
                 text:
@@ -97,8 +138,18 @@ class DecksTutorialHelper {
         TargetContent(
           builder: (context, controller) {
             return TutorialCardWidget(
-                onNext: controller.next,
-                onPrevious: controller.previous,
+                onNext: () {
+                  controller.next();
+                  context
+                      .read<DecksTutorialBloc>()
+                      .add(DecksTutorialNextEvent());
+                },
+                onPrevious: () {
+                  controller.previous();
+                  context
+                      .read<DecksTutorialBloc>()
+                      .add(DecksTutorialPreviousEvent());
+                },
                 nextText: 'Next',
                 previousText: 'Previous',
                 text: "Find a card by using its name.");
@@ -118,8 +169,18 @@ class DecksTutorialHelper {
           align: ContentAlign.top,
           builder: (context, controller) {
             return TutorialCardWidget(
-                onNext: controller.next,
-                onPrevious: controller.previous,
+                onNext: () {
+                  controller.next();
+                  context
+                      .read<DecksTutorialBloc>()
+                      .add(DecksTutorialNextEvent());
+                },
+                onPrevious: () {
+                  controller.previous();
+                  context
+                      .read<DecksTutorialBloc>()
+                      .add(DecksTutorialPreviousEvent());
+                },
                 nextText: 'Next',
                 previousText: 'Previous',
                 text:
@@ -140,8 +201,18 @@ class DecksTutorialHelper {
           align: ContentAlign.top,
           builder: (context, controller) {
             return TutorialCardWidget(
-                onNext: controller.skip,
-                onPrevious: controller.previous,
+                onNext: () {
+                  controller.skip();
+                  context
+                      .read<DecksTutorialBloc>()
+                      .add(DecksTutorialFinishEvent());
+                },
+                onPrevious: () {
+                  controller.previous();
+                  context
+                      .read<DecksTutorialBloc>()
+                      .add(DecksTutorialPreviousEvent());
+                },
                 nextText: 'Finish',
                 previousText: 'Previous',
                 text:

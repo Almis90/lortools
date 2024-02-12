@@ -6,7 +6,7 @@ sealed class PreviewCardState {}
 final class PreviewCardInitialState extends PreviewCardState {}
 
 final class PreviewCardSelectedState extends PreviewCardState {
-  LorCard card;
+  final LorCard card;
 
   PreviewCardSelectedState({required this.card});
 }

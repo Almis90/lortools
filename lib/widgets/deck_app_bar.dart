@@ -6,6 +6,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:lortools/bloc/app_bloc.dart';
 import 'package:lortools/bloc/cards_bloc.dart';
 import 'package:lortools/bloc/decks_bloc.dart';
+import 'package:lortools/bloc/decks_tutorial_bloc.dart';
 import 'package:lortools/bloc/opponent_cards_bloc.dart';
 import 'package:lortools/bloc/predicted_cards_bloc.dart';
 import 'package:lortools/bloc/preview_card_bloc.dart';
@@ -36,17 +37,32 @@ class _DeckAppBarState extends State<DeckAppBar> {
 
   List<Widget> _buildIcons() {
     return [
+      _buildTutorialIcon(),
+      const SizedBox(width: 1),
       _buildAppInfoBloc(),
       const SizedBox(width: 4),
       buildGithubIcon(),
       const SizedBox(width: 4),
       _buildDiscordIcon(),
-      const SizedBox(width: 4),
+      const SizedBox(width: 1),
       _buildResetIcon(),
-      const SizedBox(width: 4),
+      const SizedBox(width: 1),
       _buildSettingsIcon(),
       const SizedBox(width: 14),
     ];
+  }
+
+  GestureDetector _buildTutorialIcon() {
+    return GestureDetector(
+      child: const Icon(
+        Icons.lightbulb,
+      ),
+      onTap: () async {
+        context
+            .read<DecksTutorialBloc>()
+            .add(DecksTutorialShowEvent(force: true));
+      },
+    );
   }
 
   GestureDetector _buildSettingsIcon() {
@@ -147,8 +163,12 @@ class _DeckAppBarState extends State<DeckAppBar> {
       builder: (context, state) {
         return GestureDetector(
           onTap: _showInfoDialog,
-          child: const Icon(
-            Icons.info_outline,
+          child: const Padding(
+            padding: EdgeInsets.fromLTRB(0, 2, 0, 0),
+            child: Icon(
+              Icons.info_outline,
+              size: 28,
+            ),
           ),
         );
       },
@@ -179,7 +199,10 @@ class _DeckAppBarState extends State<DeckAppBar> {
               Container(
                 width: 150,
                 color: Colors.black,
-                child: _buildMasteringRuneterraLogo(),
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: _buildMasteringRuneterraLogo(),
+                ),
               ),
               const Text(
                 'https://masteringruneterra.com',
@@ -204,7 +227,6 @@ class _DeckAppBarState extends State<DeckAppBar> {
                   title: 'Error',
                   text:
                       'Could not open the url, please enter the url manually: $url',
-                  widget: _buildCredits(),
                 );
               }
             }

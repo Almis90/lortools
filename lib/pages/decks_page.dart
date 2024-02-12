@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lortools/bloc/decks_bloc.dart';
+import 'package:lortools/bloc/decks_tutorial_bloc.dart';
 import 'package:lortools/bloc/opponent_cards_bloc.dart';
 import 'package:lortools/bloc/predicted_cards_bloc.dart';
 import 'package:lortools/bloc/preview_card_bloc.dart';
@@ -50,7 +51,11 @@ class _DecksPageState extends State<DecksPage> {
 
     _addFocusListenerToSearchCardText();
 
-    _decksTutorialHelper.showTutorial();
+    _showTutorialIfApplicable();
+  }
+
+  void _showTutorialIfApplicable() {
+    context.read<DecksTutorialBloc>().add(DecksTutorialShowEvent(force: false));
   }
 
   void _addFocusListenerToSearchCardText() {
@@ -73,6 +78,17 @@ class _DecksPageState extends State<DecksPage> {
 
   @override
   Widget build(BuildContext context) {
+    return BlocListener<DecksTutorialBloc, DecksTutorialState>(
+      listener: (context, state) {
+        if (state is DecksTutorialActiveState) {
+          _decksTutorialHelper.showTutorial();
+        }
+      },
+      child: _buildDecksScaffold(),
+    );
+  }
+
+  Scaffold _buildDecksScaffold() {
     return Scaffold(
       key: Keys.scaffoldKey,
       appBar: const DeckAppBar(),
