@@ -85,131 +85,7 @@ class _DecksPageState extends State<DecksPage> {
       key: _scaffoldKey,
       appBar: AppBar(
         title: const Text('Decks'),
-        actions: [
-          BlocConsumer<AppBloc, AppState>(
-            listener: (context, state) {
-              if (state is AppPackageInfoLoadedState) {
-                QuickAlert.show(
-                  context: context,
-                  type: QuickAlertType.info,
-                  title: 'App Version',
-                  text: 'v${state.version} (${state.buildNumber})',
-                  widget: Column(
-                    children: [
-                      const Padding(
-                        padding: EdgeInsets.all(8.0),
-                        child: Text(
-                          'Credits',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            decoration: TextDecoration.underline,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ),
-                      GestureDetector(
-                        child: Column(
-                          children: [
-                            Container(
-                              width: 150,
-                              color: Colors.black,
-                              child: Image.network(
-                                  'https://masteringruneterra.com/wp-content/uploads/2022/04/MRLogo-Colored-768x307-1-300x120.png'),
-                            ),
-                            const Text(
-                              'https://masteringruneterra.com',
-                              style: TextStyle(
-                                color: Colors.blue,
-                                decoration: TextDecoration.underline,
-                                decorationColor: Colors.blue,
-                              ),
-                            ),
-                          ],
-                        ),
-                        onTap: () async {
-                          final url =
-                              Uri.parse('https://masteringruneterra.com');
-
-                          if (await canLaunchUrl(url)) {
-                            await launchUrl(url);
-                          }
-                        },
-                      ),
-                      const Text('For providing the meta decks.')
-                    ],
-                  ),
-                );
-              }
-            },
-            buildWhen: (previous, current) {
-              return current is AppInitial;
-            },
-            builder: (context, state) {
-              return GestureDetector(
-                child: const Icon(
-                  Icons.info_outline,
-                ),
-                onTap: () {
-                  context.read<AppBloc>().add(AppPackageInfoLoadEvent());
-                },
-              );
-            },
-          ),
-          const SizedBox(width: 4),
-          GestureDetector(
-            child: const FaIcon(
-              FontAwesomeIcons.github,
-            ),
-            onTap: () async {
-              final url = Uri.parse('https://github.com/Almis90/lortools');
-
-              if (await canLaunchUrl(url)) {
-                await launchUrl(url);
-              }
-            },
-          ),
-          const SizedBox(width: 4),
-          GestureDetector(
-            child: const Icon(
-              Icons.discord,
-            ),
-            onTap: () async {
-              final url = Uri.parse('https://discord.gg/757eAnZx4d');
-
-              if (await canLaunchUrl(url)) {
-                await launchUrl(url);
-              }
-            },
-          ),
-          const SizedBox(width: 4),
-          GestureDetector(
-            child: Icon(
-              key: _resetIconKey,
-              Icons.restart_alt,
-            ),
-            onTap: () {
-              _championsController.clearAllSelection();
-              _regionsController.clearAllSelection();
-              _searchController.clear();
-              context.read<CardsBloc>().add(CardsLoadFromAllSets());
-              context.read<OpponentCardsBloc>().add(OpponentCardsClear());
-              context.read<PredictedCardsBloc>().add(PredictedCardsClear());
-              context.read<DecksBloc>().add(DecksInitialize());
-            },
-          ),
-          const SizedBox(width: 4),
-          GestureDetector(
-            child: Icon(
-              key: _settingsIconKey,
-              Icons.settings,
-            ),
-            onTap: () {
-              _scaffoldKey.currentState?.openEndDrawer();
-              context.read<SettingsBloc>().add(LoadSettingsEvent());
-            },
-          ),
-          const SizedBox(width: 14),
-        ],
+        actions: _buildIcons(context),
       ),
       endDrawer: const SettingsPage(),
       body: Padding(
@@ -223,8 +99,8 @@ class _DecksPageState extends State<DecksPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildCards(),
-                  _buildOpponentCards(),
-                  _buildPredictedCards(),
+                  _buildOpponentCardsCard(),
+                  _buildPredictedCardsCard(),
                   const Spacer(),
                 ],
               ),
@@ -235,17 +111,156 @@ class _DecksPageState extends State<DecksPage> {
     );
   }
 
-  Widget _buildCardLayout(String title, Widget content, Key key) {
-    return Expanded(
-      key: key,
-      child: Card(
-        child: Column(
-          children: [
-            _cardsTitle(title),
-            Expanded(child: content),
-          ],
-        ),
+  List<Widget> _buildIcons(BuildContext context) {
+    return [
+      _buildAppInfoBloc(),
+      const SizedBox(width: 4),
+      buildGithubIcon(),
+      const SizedBox(width: 4),
+      _buildDiscordIcon(),
+      const SizedBox(width: 4),
+      _buildResetIcon(context),
+      const SizedBox(width: 4),
+      _buildSettingsIcon(context),
+      const SizedBox(width: 14),
+    ];
+  }
+
+  GestureDetector _buildSettingsIcon(BuildContext context) {
+    return GestureDetector(
+      child: Icon(
+        key: _settingsIconKey,
+        Icons.settings,
       ),
+      onTap: () {
+        _scaffoldKey.currentState?.openEndDrawer();
+        context.read<SettingsBloc>().add(LoadSettingsEvent());
+      },
+    );
+  }
+
+  GestureDetector _buildResetIcon(BuildContext context) {
+    return GestureDetector(
+      child: Icon(
+        key: _resetIconKey,
+        Icons.restart_alt,
+      ),
+      onTap: () {
+        _championsController.clearAllSelection();
+        _regionsController.clearAllSelection();
+        _searchController.clear();
+        context.read<CardsBloc>().add(CardsLoadFromAllSets());
+        context.read<OpponentCardsBloc>().add(OpponentCardsClear());
+        context.read<PredictedCardsBloc>().add(PredictedCardsClear());
+        context.read<DecksBloc>().add(DecksInitialize());
+      },
+    );
+  }
+
+  GestureDetector _buildDiscordIcon() {
+    return GestureDetector(
+      child: const Icon(
+        Icons.discord,
+      ),
+      onTap: () async {
+        final url = Uri.parse('https://discord.gg/757eAnZx4d');
+
+        if (await canLaunchUrl(url)) {
+          await launchUrl(url);
+        }
+      },
+    );
+  }
+
+  GestureDetector buildGithubIcon() {
+    return GestureDetector(
+      child: const FaIcon(
+        FontAwesomeIcons.github,
+      ),
+      onTap: () async {
+        final url = Uri.parse('https://github.com/Almis90/lortools');
+
+        if (await canLaunchUrl(url)) {
+          await launchUrl(url);
+        }
+      },
+    );
+  }
+
+  BlocConsumer<AppBloc, AppState> _buildAppInfoBloc() {
+    return BlocConsumer<AppBloc, AppState>(
+      listener: (context, state) {
+        if (state is AppPackageInfoLoadedState) {
+          QuickAlert.show(
+            context: context,
+            type: QuickAlertType.info,
+            title: 'App Version',
+            text: 'v${state.version} (${state.buildNumber})',
+            widget: _buildCredits(),
+          );
+        }
+      },
+      buildWhen: (previous, current) {
+        return current is AppInitial;
+      },
+      builder: (context, state) {
+        return GestureDetector(
+          onTap: _showInfoDialog,
+          child: const Icon(
+            Icons.info_outline,
+          ),
+        );
+      },
+    );
+  }
+
+  void _showInfoDialog() {
+    context.read<AppBloc>().add(AppPackageInfoLoadEvent());
+  }
+
+  Column _buildCredits() {
+    return Column(
+      children: [
+        const Padding(
+          padding: EdgeInsets.all(8.0),
+          child: Text(
+            'Credits',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              decoration: TextDecoration.underline,
+              fontSize: 16,
+            ),
+          ),
+        ),
+        GestureDetector(
+          child: Column(
+            children: [
+              Container(
+                width: 150,
+                color: Colors.black,
+                child: Image.network(
+                    'https://masteringruneterra.com/wp-content/uploads/2022/04/MRLogo-Colored-768x307-1-300x120.png'),
+              ),
+              const Text(
+                'https://masteringruneterra.com',
+                style: TextStyle(
+                  color: Colors.blue,
+                  decoration: TextDecoration.underline,
+                  decorationColor: Colors.blue,
+                ),
+              ),
+            ],
+          ),
+          onTap: () async {
+            final url = Uri.parse('https://masteringruneterra.com');
+
+            if (await canLaunchUrl(url)) {
+              await launchUrl(url);
+            }
+          },
+        ),
+        const Text('For providing the meta decks.')
+      ],
     );
   }
 
@@ -259,65 +274,72 @@ class _DecksPageState extends State<DecksPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                BlocBuilder<SearchCardsBloc, SearchCardsState>(
-                  builder: (context, state) {
-                    if (state is SearchCardsInitial) {
-                      return _cardsTitle(title);
-                    } else {
-                      return Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(0, 0, 0, 4),
-                          child: TextField(
-                            controller: _searchController,
-                            focusNode: _searchFocusNode,
-                            onChanged: (value) {
-                              context
-                                  .read<CardsBloc>()
-                                  .add(FilterCardsByName(value));
-                            },
-                            decoration: const InputDecoration(
-                              labelText: 'Search',
-                              border: OutlineInputBorder(),
-                              prefixIcon: Icon(Icons.search),
-                            ),
-                          ),
-                        ),
-                      );
-                    }
-                  },
-                ),
-                BlocBuilder<SearchCardsBloc, SearchCardsState>(
-                  builder: (context, state) {
-                    if (state is SearchCardsInitial) {
-                      return GestureDetector(
-                        child: Icon(
-                          key: _searchCardIconKey,
-                          Icons.search,
-                        ),
-                        onTap: () {
-                          context
-                              .read<SearchCardsBloc>()
-                              .add(SearchCardsToggle(_searchController.text));
-                        },
-                      );
-                    } else {
-                      return GestureDetector(
-                        child: const Icon(Icons.close_sharp),
-                        onTap: () {
-                          context
-                              .read<SearchCardsBloc>()
-                              .add(SearchCardsToggle(_searchController.text));
-                        },
-                      );
-                    }
-                  },
-                ),
+                _buildCardsTitleOrSearchBloc(title),
+                _buildCardsSearchIconBloc(),
               ],
             ),
             Expanded(child: content),
           ],
         ),
       ),
+    );
+  }
+
+  BlocBuilder<SearchCardsBloc, SearchCardsState> _buildCardsSearchIconBloc() {
+    return BlocBuilder<SearchCardsBloc, SearchCardsState>(
+      builder: (context, state) {
+        if (state is SearchCardsInitial) {
+          return GestureDetector(
+            child: Icon(
+              key: _searchCardIconKey,
+              Icons.search,
+            ),
+            onTap: () {
+              context
+                  .read<SearchCardsBloc>()
+                  .add(SearchCardsToggle(_searchController.text));
+            },
+          );
+        } else {
+          return GestureDetector(
+            child: const Icon(Icons.close_sharp),
+            onTap: () {
+              context
+                  .read<SearchCardsBloc>()
+                  .add(SearchCardsToggle(_searchController.text));
+            },
+          );
+        }
+      },
+    );
+  }
+
+  BlocBuilder<SearchCardsBloc, SearchCardsState> _buildCardsTitleOrSearchBloc(
+      String title) {
+    return BlocBuilder<SearchCardsBloc, SearchCardsState>(
+      builder: (context, state) {
+        if (state is SearchCardsInitial) {
+          return _cardsTitle(title);
+        } else {
+          return Expanded(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(0, 0, 0, 4),
+              child: TextField(
+                controller: _searchController,
+                focusNode: _searchFocusNode,
+                onChanged: (value) {
+                  context.read<CardsBloc>().add(FilterCardsByName(value));
+                },
+                decoration: const InputDecoration(
+                  labelText: 'Search',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.search),
+                ),
+              ),
+            ),
+          );
+        }
+      },
     );
   }
 
@@ -336,51 +358,60 @@ class _DecksPageState extends State<DecksPage> {
     );
   }
 
-  Widget _buildOpponentCards() {
-    return _buildCardLayout(
-      'Opponent Cards',
-      DragTarget<LorCard>(
-        onAccept: (data) {
-          var opponentCardsBloc = context.read<OpponentCardsBloc>();
-          opponentCardsBloc.add(OpponentCardsAdd(data));
+  Widget _buildOpponentCardsCard() {
+    return Expanded(
+      key: _opponentCardsKey,
+      child: Card(
+        child: Column(
+          children: [
+            _cardsTitle('Opponent Cards'),
+            Expanded(
+              child: DragTarget<LorCard>(
+                onAccept: (data) {
+                  var opponentCardsBloc = context.read<OpponentCardsBloc>();
+                  opponentCardsBloc.add(OpponentCardsAdd(data));
 
-          if (data.rarity == 'Champion' &&
-              !_championsController.selectedOptions
-                  .any((x) => x.value == data.cardCode)) {
-            _championsController.addSelectedOption(_championsController.options
-                .firstWhere((element) => element.value == data.cardCode));
-          }
+                  if (data.rarity == 'Champion' &&
+                      !_championsController.selectedOptions
+                          .any((x) => x.value == data.cardCode)) {
+                    _championsController.addSelectedOption(
+                        _championsController.options.firstWhere(
+                            (element) => element.value == data.cardCode));
+                  }
 
-          context.read<PredictedCardsBloc>().add(PredictedCardsUpdate(
-              opponentCardsBloc.cards.toList()..add(data)));
-        },
-        builder: (context, candidateData, rejectedData) {
-          return BlocBuilder<OpponentCardsBloc, OpponentCardsState>(
-            builder: (context, state) {
-              if (state is OpponentCardsUpdated) {
-                if (state.cards.isEmpty) {
-                  return _buildEmptyOpponentCards();
-                } else {
-                  return ListView.builder(
-                    itemCount: state.cards.length,
-                    itemBuilder: (context, index) {
-                      return LayoutBuilder(
-                        builder: (context, constraints) {
-                          return _buildDraggableCard(
-                              context, state.cards[index], constraints, true);
-                        },
-                      );
+                  context.read<PredictedCardsBloc>().add(PredictedCardsUpdate(
+                      opponentCardsBloc.cards.toList()..add(data)));
+                },
+                builder: (context, candidateData, rejectedData) {
+                  return BlocBuilder<OpponentCardsBloc, OpponentCardsState>(
+                    builder: (context, state) {
+                      if (state is OpponentCardsUpdated) {
+                        if (state.cards.isEmpty) {
+                          return _buildEmptyOpponentCards();
+                        } else {
+                          return ListView.builder(
+                            itemCount: state.cards.length,
+                            itemBuilder: (context, index) {
+                              return LayoutBuilder(
+                                builder: (context, constraints) {
+                                  return _buildDraggableCard(context,
+                                      state.cards[index], constraints, true);
+                                },
+                              );
+                            },
+                          );
+                        }
+                      } else {
+                        return _buildEmptyOpponentCards();
+                      }
                     },
                   );
-                }
-              } else {
-                return _buildEmptyOpponentCards();
-              }
-            },
-          );
-        },
+                },
+              ),
+            ),
+          ],
+        ),
       ),
-      _opponentCardsKey,
     );
   }
 
@@ -447,32 +478,47 @@ class _DecksPageState extends State<DecksPage> {
     );
   }
 
-  Widget _buildPredictedCards() {
-    return _buildCardLayout(
-      'Predicted Cards',
-      BlocBuilder<PredictedCardsBloc, PredictedCardsState>(
-        builder: (context, state) {
-          if (state is PredictedCardsUpdated) {
-            if (state.cards.isEmpty) {
-              return _buildEmptyPredictedCards();
-            } else {
-              return ListView.builder(
-                itemCount: state.cards.length,
-                itemBuilder: (context, index) {
-                  return LayoutBuilder(
-                    builder: (context, constraints) {
-                      return CardPredictionWidget(lorCard: state.cards[index]);
-                    },
-                  );
-                },
-              );
-            }
-          } else {
-            return _buildInitialPredictedCards();
-          }
-        },
+  Widget _buildPredictedCardsCard() {
+    return Expanded(
+      key: _predictedCardsKey,
+      child: Card(
+        child: Column(
+          children: [
+            _cardsTitle('Predicted Cards'),
+            _buildPredictedCardsBloc(),
+          ],
+        ),
       ),
-      _predictedCardsKey,
+    );
+  }
+
+  BlocBuilder<PredictedCardsBloc, PredictedCardsState>
+      _buildPredictedCardsBloc() {
+    return BlocBuilder<PredictedCardsBloc, PredictedCardsState>(
+      builder: (context, state) {
+        if (state is PredictedCardsUpdated) {
+          if (state.cards.isEmpty) {
+            return _buildEmptyPredictedCards();
+          } else {
+            return _buildPredictedCards(state);
+          }
+        } else {
+          return _buildInitialPredictedCards();
+        }
+      },
+    );
+  }
+
+  ListView _buildPredictedCards(PredictedCardsUpdated state) {
+    return ListView.builder(
+      itemCount: state.cards.length,
+      itemBuilder: (context, index) {
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            return CardPredictionWidget(lorCard: state.cards[index]);
+          },
+        );
+      },
     );
   }
 
@@ -503,10 +549,8 @@ class _DecksPageState extends State<DecksPage> {
   }
 
   List<LorCard> _getUniqueSortedCards(List<LorCard> cards) {
-    // Filter for collectible cards and remove duplicates based on cardCode
     var uniqueCards = cards.where((card) => card.collectible).toSet().toList();
 
-    // Sorting logic
     uniqueCards.sort((a, b) {
       return a.name.compareTo(b.name);
     });
@@ -685,116 +729,140 @@ class _DecksPageState extends State<DecksPage> {
       focusAnimationDuration: const Duration(milliseconds: 400),
       unFocusAnimationDuration: const Duration(milliseconds: 300),
       targets: [
-        TargetFocus(
-          identify: '_settingsIconKey',
-          keyTarget: _settingsIconKey,
-          contents: [
-            TargetContent(
-              builder: (context, controller) {
-                return TutorialCardWidget(
-                    onNext: controller.next,
-                    onPrevious: controller.skip,
-                    nextText: 'Next',
-                    previousText: 'Skip',
-                    text:
-                        "From here you can change your region, format and more.");
-              },
-            ),
-          ],
-        ),
-        TargetFocus(
-          identify: '_resetIconKey',
-          keyTarget: _resetIconKey,
-          contents: [
-            TargetContent(
-              builder: (context, controller) {
-                return TutorialCardWidget(
-                    onNext: controller.next,
-                    onPrevious: controller.previous,
-                    nextText: 'Next',
-                    previousText: 'Previous',
-                    text: "Undo everything and start from scratch.");
-              },
-            ),
-          ],
-        ),
-        TargetFocus(
-          identify: '_cardsKey',
-          keyTarget: _cardsKey,
-          shape: ShapeLightFocus.RRect,
-          contents: [
-            TargetContent(
-              align: ContentAlign.top,
-              builder: (context, controller) {
-                return TutorialCardWidget(
-                    onNext: controller.next,
-                    onPrevious: controller.previous,
-                    nextText: 'Next',
-                    previousText: 'Previous',
-                    text:
-                        "Find opponent cards here and move them to opponent cards.");
-              },
-            ),
-          ],
-        ),
-        TargetFocus(
-          identify: '_searchCardIconKey',
-          keyTarget: _searchCardIconKey,
-          contents: [
-            TargetContent(
-              builder: (context, controller) {
-                return TutorialCardWidget(
-                    onNext: controller.next,
-                    onPrevious: controller.previous,
-                    nextText: 'Next',
-                    previousText: 'Previous',
-                    text: "Find a card by using its name.");
-              },
-            ),
-          ],
-        ),
-        TargetFocus(
-          identify: '_opponentCardsKey',
-          keyTarget: _opponentCardsKey,
-          shape: ShapeLightFocus.RRect,
-          contents: [
-            TargetContent(
-              align: ContentAlign.top,
-              builder: (context, controller) {
-                return TutorialCardWidget(
-                    onNext: controller.next,
-                    onPrevious: controller.previous,
-                    nextText: 'Next',
-                    previousText: 'Previous',
-                    text:
-                        "List of confirmed opponent cards that have been played or revealed.");
-              },
-            ),
-          ],
-        ),
-        TargetFocus(
-          identify: '_predictedCardsKEy',
-          keyTarget: _predictedCardsKey,
-          shape: ShapeLightFocus.RRect,
-          contents: [
-            TargetContent(
-              align: ContentAlign.top,
-              builder: (context, controller) {
-                return TutorialCardWidget(
-                    onNext: controller.skip,
-                    onPrevious: controller.previous,
-                    nextText: 'Finish',
-                    previousText: 'Previous',
-                    text:
-                        "List of predicted cards that the opponent might have, there is a separate percentage for each copy of the card.");
-              },
-            ),
-          ],
-        ),
+        _settingsTargetFocus(),
+        _resetIconTargetFocus(),
+        _cardsTargetFocus(),
+        _searchCardTargetFocus(),
+        _opponentCardsTargetFocus(),
+        _predictedCardsTargetFocus(),
       ],
     );
+
     if (context.mounted) {
       _tutorialCoachMark?.show(context: context);
     }
+  }
+
+  TargetFocus _settingsTargetFocus() {
+    return TargetFocus(
+      identify: '_settingsIconKey',
+      keyTarget: _settingsIconKey,
+      contents: [
+        TargetContent(
+          builder: (context, controller) {
+            return TutorialCardWidget(
+                onNext: controller.next,
+                onPrevious: controller.skip,
+                nextText: 'Next',
+                previousText: 'Skip',
+                text: "From here you can change your region, format and more.");
+          },
+        ),
+      ],
+    );
+  }
+
+  TargetFocus _resetIconTargetFocus() {
+    return TargetFocus(
+      identify: '_resetIconKey',
+      keyTarget: _resetIconKey,
+      contents: [
+        TargetContent(
+          builder: (context, controller) {
+            return TutorialCardWidget(
+                onNext: controller.next,
+                onPrevious: controller.previous,
+                nextText: 'Next',
+                previousText: 'Previous',
+                text: "Undo everything and start from scratch.");
+          },
+        ),
+      ],
+    );
+  }
+
+  TargetFocus _cardsTargetFocus() {
+    return TargetFocus(
+      identify: '_cardsKey',
+      keyTarget: _cardsKey,
+      shape: ShapeLightFocus.RRect,
+      contents: [
+        TargetContent(
+          align: ContentAlign.top,
+          builder: (context, controller) {
+            return TutorialCardWidget(
+                onNext: controller.next,
+                onPrevious: controller.previous,
+                nextText: 'Next',
+                previousText: 'Previous',
+                text:
+                    "Find opponent cards here and move them to opponent cards.");
+          },
+        ),
+      ],
+    );
+  }
+
+  TargetFocus _searchCardTargetFocus() {
+    return TargetFocus(
+      identify: '_searchCardIconKey',
+      keyTarget: _searchCardIconKey,
+      contents: [
+        TargetContent(
+          builder: (context, controller) {
+            return TutorialCardWidget(
+                onNext: controller.next,
+                onPrevious: controller.previous,
+                nextText: 'Next',
+                previousText: 'Previous',
+                text: "Find a card by using its name.");
+          },
+        ),
+      ],
+    );
+  }
+
+  TargetFocus _opponentCardsTargetFocus() {
+    return TargetFocus(
+      identify: '_opponentCardsKey',
+      keyTarget: _opponentCardsKey,
+      shape: ShapeLightFocus.RRect,
+      contents: [
+        TargetContent(
+          align: ContentAlign.top,
+          builder: (context, controller) {
+            return TutorialCardWidget(
+                onNext: controller.next,
+                onPrevious: controller.previous,
+                nextText: 'Next',
+                previousText: 'Previous',
+                text:
+                    "List of confirmed opponent cards that have been played or revealed.");
+          },
+        ),
+      ],
+    );
+  }
+
+  TargetFocus _predictedCardsTargetFocus() {
+    return TargetFocus(
+      identify: '_predictedCardsKey',
+      keyTarget: _predictedCardsKey,
+      shape: ShapeLightFocus.RRect,
+      contents: [
+        TargetContent(
+          align: ContentAlign.top,
+          builder: (context, controller) {
+            return TutorialCardWidget(
+                onNext: controller.skip,
+                onPrevious: controller.previous,
+                nextText: 'Finish',
+                previousText: 'Previous',
+                text:
+                    "List of predicted cards that the opponent might have, there is a separate percentage for each copy of the card.");
+          },
+        ),
+      ],
+    );
   }
 }
