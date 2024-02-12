@@ -1,5 +1,5 @@
 # LorTools
-![LorTools](docs/images/lor.png)
+![LorTools](docs/images/lor.png?1)
 
 ## Overview
 
