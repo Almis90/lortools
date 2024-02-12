@@ -53,20 +53,29 @@ class _DecksPageState extends State<DecksPage> {
   @override
   void initState() {
     super.initState();
-    initializeDecks();
 
-    _searchFocusNode.addListener(() {
-      if (!_searchFocusNode.hasFocus) {
-        context
-            .read<SearchCardsBloc>()
-            .add(SearchCardsToggle(_searchController.text));
-      }
-    });
+    _loadAllCardsFromAllSets();
+
+    _addFocusListenerToSearchCardText();
 
     _showTutorial();
   }
 
-  void initializeDecks() {
+  void _addFocusListenerToSearchCardText() {
+    _searchFocusNode.addListener(() {
+      if (!_searchFocusNode.hasFocus) {
+        _toggleSearchCards();
+      }
+    });
+  }
+
+  void _toggleSearchCards() {
+    context
+        .read<SearchCardsBloc>()
+        .add(SearchCardsToggle(_searchController.text));
+  }
+
+  void _loadAllCardsFromAllSets() {
     context.read<CardsBloc>().add(CardsLoadFromAllSets());
   }
 
@@ -605,8 +614,11 @@ class _DecksPageState extends State<DecksPage> {
   }
 
   Widget _buildDeckCard(Deck deck) {
+    var width = 75.0 * deck.champions.length;
+    width = width < 220 ? 220 : width;
+
     return SizedBox(
-      width: 220,
+      width: width,
       height: 120,
       child: DeckCardWidget(deck: deck),
     );
