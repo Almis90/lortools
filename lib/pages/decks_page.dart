@@ -2,14 +2,11 @@ import 'package:auto_route/auto_route.dart';
 import 'package:darq/darq.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:lortools/bloc/app_bloc.dart';
 import 'package:lortools/bloc/decks_bloc.dart';
 import 'package:lortools/bloc/opponent_cards_bloc.dart';
 import 'package:lortools/bloc/predicted_cards_bloc.dart';
 import 'package:lortools/bloc/search_cards_bloc.dart';
 import 'package:lortools/bloc/cards_bloc.dart';
-import 'package:lortools/bloc/settings_bloc.dart';
 import 'package:lortools/helpers/card_helper.dart';
 import 'package:lortools/models/champion.dart';
 import 'package:lortools/models/deck.dart';
@@ -17,13 +14,11 @@ import 'package:lortools/models/lor_card.dart';
 import 'package:lortools/pages/settings_page.dart';
 import 'package:lortools/widgets/card_prediction_widget.dart';
 import 'package:lortools/widgets/card_widget.dart';
+import 'package:lortools/widgets/deck_app_bar.dart';
 import 'package:lortools/widgets/deck_card_widget.dart';
 import 'package:lortools/widgets/tutorial_card_widget.dart';
 import 'package:multi_dropdown/multiselect_dropdown.dart';
-import 'package:quickalert/models/quickalert_type.dart';
-import 'package:quickalert/widgets/quickalert_dialog.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 @RoutePage()
 class DecksPage extends StatefulWidget {
@@ -83,10 +78,7 @@ class _DecksPageState extends State<DecksPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
-      appBar: AppBar(
-        title: const Text('Decks'),
-        actions: _buildIcons(context),
-      ),
+      appBar: const DeckAppBar(),
       endDrawer: const SettingsPage(),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -111,159 +103,6 @@ class _DecksPageState extends State<DecksPage> {
     );
   }
 
-  List<Widget> _buildIcons(BuildContext context) {
-    return [
-      _buildAppInfoBloc(),
-      const SizedBox(width: 4),
-      buildGithubIcon(),
-      const SizedBox(width: 4),
-      _buildDiscordIcon(),
-      const SizedBox(width: 4),
-      _buildResetIcon(context),
-      const SizedBox(width: 4),
-      _buildSettingsIcon(context),
-      const SizedBox(width: 14),
-    ];
-  }
-
-  GestureDetector _buildSettingsIcon(BuildContext context) {
-    return GestureDetector(
-      child: Icon(
-        key: _settingsIconKey,
-        Icons.settings,
-      ),
-      onTap: () {
-        _scaffoldKey.currentState?.openEndDrawer();
-        context.read<SettingsBloc>().add(LoadSettingsEvent());
-      },
-    );
-  }
-
-  GestureDetector _buildResetIcon(BuildContext context) {
-    return GestureDetector(
-      child: Icon(
-        key: _resetIconKey,
-        Icons.restart_alt,
-      ),
-      onTap: () {
-        _championsController.clearAllSelection();
-        _regionsController.clearAllSelection();
-        _searchController.clear();
-        context.read<CardsBloc>().add(CardsLoadFromAllSets());
-        context.read<OpponentCardsBloc>().add(OpponentCardsClear());
-        context.read<PredictedCardsBloc>().add(PredictedCardsClear());
-        context.read<DecksBloc>().add(DecksInitialize());
-      },
-    );
-  }
-
-  GestureDetector _buildDiscordIcon() {
-    return GestureDetector(
-      child: const Icon(
-        Icons.discord,
-      ),
-      onTap: () async {
-        final url = Uri.parse('https://discord.gg/757eAnZx4d');
-
-        if (await canLaunchUrl(url)) {
-          await launchUrl(url);
-        }
-      },
-    );
-  }
-
-  GestureDetector buildGithubIcon() {
-    return GestureDetector(
-      child: const FaIcon(
-        FontAwesomeIcons.github,
-      ),
-      onTap: () async {
-        final url = Uri.parse('https://github.com/Almis90/lortools');
-
-        if (await canLaunchUrl(url)) {
-          await launchUrl(url);
-        }
-      },
-    );
-  }
-
-  BlocConsumer<AppBloc, AppState> _buildAppInfoBloc() {
-    return BlocConsumer<AppBloc, AppState>(
-      listener: (context, state) {
-        if (state is AppPackageInfoLoadedState) {
-          QuickAlert.show(
-            context: context,
-            type: QuickAlertType.info,
-            title: 'App Version',
-            text: 'v${state.version} (${state.buildNumber})',
-            widget: _buildCredits(),
-          );
-        }
-      },
-      buildWhen: (previous, current) {
-        return current is AppInitial;
-      },
-      builder: (context, state) {
-        return GestureDetector(
-          onTap: _showInfoDialog,
-          child: const Icon(
-            Icons.info_outline,
-          ),
-        );
-      },
-    );
-  }
-
-  void _showInfoDialog() {
-    context.read<AppBloc>().add(AppPackageInfoLoadEvent());
-  }
-
-  Column _buildCredits() {
-    return Column(
-      children: [
-        const Padding(
-          padding: EdgeInsets.all(8.0),
-          child: Text(
-            'Credits',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              decoration: TextDecoration.underline,
-              fontSize: 16,
-            ),
-          ),
-        ),
-        GestureDetector(
-          child: Column(
-            children: [
-              Container(
-                width: 150,
-                color: Colors.black,
-                child: Image.network(
-                    'https://masteringruneterra.com/wp-content/uploads/2022/04/MRLogo-Colored-768x307-1-300x120.png'),
-              ),
-              const Text(
-                'https://masteringruneterra.com',
-                style: TextStyle(
-                  color: Colors.blue,
-                  decoration: TextDecoration.underline,
-                  decorationColor: Colors.blue,
-                ),
-              ),
-            ],
-          ),
-          onTap: () async {
-            final url = Uri.parse('https://masteringruneterra.com');
-
-            if (await canLaunchUrl(url)) {
-              await launchUrl(url);
-            }
-          },
-        ),
-        const Text('For providing the meta decks.')
-      ],
-    );
-  }
-
   Widget _buildCardLayoutWithSearch(
       String title, Widget content, List<LorCard> cards) {
     return Expanded(
@@ -285,8 +124,13 @@ class _DecksPageState extends State<DecksPage> {
     );
   }
 
-  BlocBuilder<SearchCardsBloc, SearchCardsState> _buildCardsSearchIconBloc() {
-    return BlocBuilder<SearchCardsBloc, SearchCardsState>(
+  Widget _buildCardsSearchIconBloc() {
+    return BlocConsumer<SearchCardsBloc, SearchCardsState>(
+      listener: (context, state) {
+        if (state is SearchCardsInitial) {
+          _searchController.clear();
+        }
+      },
       builder: (context, state) {
         if (state is SearchCardsInitial) {
           return GestureDetector(
@@ -582,7 +426,12 @@ class _DecksPageState extends State<DecksPage> {
   }
 
   Widget _buildChampionDropdown() {
-    return BlocBuilder<CardsBloc, CardsState>(
+    return BlocConsumer<CardsBloc, CardsState>(
+      listener: (context, state) {
+        if (state is CardsInitial) {
+          _championsController.clearAllSelection();
+        }
+      },
       builder: (context, state) {
         if (state is CardsLoaded) {
           var champions = _getChampions(state.allCards);
@@ -609,7 +458,12 @@ class _DecksPageState extends State<DecksPage> {
   }
 
   Widget _buildRegionDropdown() {
-    return BlocBuilder<CardsBloc, CardsState>(
+    return BlocConsumer<CardsBloc, CardsState>(
+      listener: (context, state) {
+        if (state is CardsInitial) {
+          _regionsController.clearAllSelection();
+        }
+      },
       builder: (context, state) {
         if (state is CardsLoaded) {
           var regions = _getRegions(state.allCards);
