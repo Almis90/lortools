@@ -1,6 +1,6 @@
 class CardHelper {
   static String getImageUrlFromCode(String code) {
-    return 'https://masteringruneterra.com/wp-content/plugins/deck-viewer/assets/images/champions/$code.webp';
+    return 'https://firebasestorage.googleapis.com/v0/b/lortools.appspot.com/o/champions%2F$code.png?alt=media';
   }
 
   static String getImageUrlFromCodeAndSet(
